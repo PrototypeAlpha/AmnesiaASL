@@ -55,6 +55,6 @@ init
 
 isLoading{return current.isLoading || current.First_loading != current.Second_loading;}
 
-start{return current.Dialogue == 88;}
-split{return current.Dialogue == 13;}
-reset{return current.menu == 6;}
+start{return current.Dialogue == 88 && old.Dialogue != 88;}
+split{return current.Dialogue == 13 && old.Dialogue != 13;}
+reset{return current.menu == 6 && old.menu != 6;}
