@@ -19,12 +19,6 @@ init
 	current.map = "menu_bg.map";
 	vars.line = null;
 	
-	try{
-        FileStream fs = new FileStream(vars.log, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
-        fs.SetLength(0);
-        fs.Close();
-	} catch{print("[AmnesiaASL] Unable to clear log file");}
-	
 	vars.reader = new StreamReader(new FileStream(vars.log, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
 	if(settings.SplitEnabled) print("[AmnesiaASL] Autosplitting enabled");
