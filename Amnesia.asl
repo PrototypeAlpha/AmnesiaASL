@@ -9,8 +9,20 @@ state("Amnesia")
 	bool isLoading	: 0xC7BE2;
 }
 
+startup{
+	vars.log = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)+"\\Amnesia\\Main\\hpl.log";
+	print("[AmnesiaASL] Log path: "+vars.log);
+}
+
 init
-{
+{	
+	current.map = "menu_bg.map";
+	vars.line = null;
+	
+	vars.reader = new StreamReader(new FileStream(vars.log, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+
+	if(settings.SplitEnabled) print("[AmnesiaASL] Autosplitting enabled");
+	
 	// Amnesia.exe + UNUSED_BYTE_OFFSET is the location where we put our isLoading var
 	// To find a new location for the isloading var, look for a place in memory with a lot of CC bytes and use the address
 	// of the start of those CC bytes
@@ -55,12 +67,33 @@ init
 	} else print("[AmnesiaASL] Already injected or unsupported game version");
 }
 
+exit{vars.reader.Close();}
+
 isLoading{return current.isLoading || current.loading1 != current.loading2;}
 
-reset{return current.dialogue == 88 && old.dialogue == 0;} // "Don't forget..." dialogue
-start{return current.dialogue == 88 && old.dialogue == 0;} // "Don't forget..." dialogue
+reset{return current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0;}
+
+start{return current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0;}
+
 split{
-	return  (current.dialogue == 13 && old.dialogue != 13)|| //Daniel ending
-			(current.dialogue == 21 && old.dialogue != 21)|| //Alexander ending
-			(current.dialogue == 33 && old.dialogue != 33);  //Agrippa ending
+	if(current.map == "00_rainy_hall.map")
+		 return; //Prevent erronious splitting if timer is already running before the start time
+	if(current.map == "29_orb_chamber.map" && old.map == current.map)
+		 return (current.dialogue == 13 && old.dialogue != 13)|| //Daniel ending
+				(current.dialogue == 21 && old.dialogue != 21)|| //Alexander ending
+				(current.dialogue == 33 && old.dialogue != 33);  //Agrippa ending
+	if(current.map == "04_final.map" && old.map == current.map)
+		 return  current.dialogue == 66 && old.dialogue != 66;	 //Justine ending
+	else return  current.map != old.map;						 //Split on level changes
+}
+
+update{
+	vars.line = vars.reader.ReadLine();
+	if (vars.line != null && vars.line.Contains("Loading map") && !vars.line.Contains("menu")){
+		vars.line = vars.line.Split("'".ToCharArray())[1];
+		if(current.map != vars.line){
+			current.map = vars.line;
+			print("[AmnesiaASL] Map is "+current.map+", was "+old.map);
+		}
+	}
 }
