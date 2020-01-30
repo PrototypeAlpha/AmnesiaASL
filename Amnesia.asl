@@ -10,6 +10,7 @@ state("Amnesia")
 }
 
 startup{
+	vars.timerModel = new TimerModel{CurrentState = timer};
 	var baseDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)+"\\Amnesia\\Main\\";
 	var aslLog = baseDir+"asl.log";
 	var hplLog = baseDir+"hpl.log";
@@ -23,8 +24,7 @@ startup{
 	vars.debug = debug;
 	
 	try{ // Create our log file
-		var aslStream = new FileStream(aslLog, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-		aslStream.SetLength(0);
+		var aslStream = new FileStream(aslLog, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
 		vars.aslWriter = new StreamWriter(aslStream);
 		debug("INFO","Successfully opened or created log file");
 		vars.selfLog = true;
@@ -45,15 +45,23 @@ startup{
 		vars.readLog = true;
 		debug("INFO","Successfully opened game log file");
 	} catch(Exception e){
-		debug("WARN","Unable to open game log file at: "+hplLog);
+		debug("WARN","Unable to open game log file");
 		debug("WARN",""+e);
 		debug("WARN","Automatic features will be unavailable");
+		MessageBox.Show(
+			"Unable to open game log file"+"\n\n"+e+
+			"\n\n"+"Automatic features will be unavailable",
+			"AmnesiaASL | LiveSplit",MessageBoxButtons.OK,MessageBoxIcon.Warning
+		);
 	}
+	
+	settings.Add("menuPause",false,"Pause timer when on main menu (for Any% with Quitouts)");
 	
 }
 
 shutdown{
 	if(vars.selfLog){
+		vars.debug("INFO","Closing log file");
 		vars.aslWriter.Flush();
 		vars.aslWriter.Close();
 		vars.selfLog = false;
@@ -120,12 +128,13 @@ exit{
 	vars.debug("INFO","Disconnected from game and closed game log file");
 }
 
-isLoading{return current.isLoading || current.loading1 != current.loading2;}
+isLoading{return current.isLoading || current.loading1 != current.loading2 ||
+				(settings["menuPause"] && current.map == "menu_bg.map");}
 
 reset{
 	if(vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
 		vars.debug("INFO","Resetting run at "+DateTime.Now);
-		return vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu");
+		return (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu");
 	}
 }
 
@@ -143,11 +152,11 @@ start{
 split{
 	if(!vars.readLog || current.map.Contains("menu") || old.map.Contains("menu"))
 		 return;
-	if(current.map == "29_orb_chamber.map")
+	if(current.map == "29_orb_chamber.map" && old.map == current.map)
 		 return (current.dialogue == 13 && old.dialogue != 13)||	//Daniel ending
 				(current.dialogue == 21 && old.dialogue != 21)||	//Alexander ending
 				(current.dialogue == 33 && old.dialogue != 33);		//Agrippa ending
-	if(current.map == "04_final.map")
+	if(current.map == "04_final.map" && old.map == current.map)
 		 return  current.dialogue == 66 && old.dialogue != 66;		//Justine ending
 	else return  current.map != old.map;							//Split on level changes
 }
@@ -160,6 +169,13 @@ update{
 			if(current.map != vars.line){
 				current.map = vars.line;
 				vars.debug("MAP",current.map+", was "+old.map);
+			}
+		}
+		// Automatically reset the timer in the normal place after a completed run
+		if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled){
+			if((current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
+				vars.debug("INFO","Saving and resetting completed run at "+DateTime.Now);
+				vars.timerModel.Reset();
 			}
 		}
 	}
