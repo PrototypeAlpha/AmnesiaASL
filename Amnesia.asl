@@ -4,7 +4,6 @@ state("Amnesia")
 	byte loading1 	: 0x781320,0x84,0x7C,0x04;
 	byte loading2	: 0x781320,0x84,0x7C;
 	byte dialogue	: 0x768C54,0x58,0x3C,0x54,0x10;
-	byte menu		: 0x768C54,0x80,0x130;
 	// From JDev's DLL
 	bool isLoading	: 0xC7BE2;
 }
@@ -127,25 +126,22 @@ exit{
 	vars.debug("INFO","Disconnected from game and closed game log file");
 }
 
-isLoading{return current.isLoading || current.loading1 != current.loading2 ||
-		 (current.map == "menu_bg.map" && timer.Run.GetExtendedCategoryName().ToLower().Contains("(quitouts"));}
+isLoading{return current.isLoading || current.loading1 != current.loading2;}
 
 reset{
 	if(vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
-		vars.debug("INFO","Resetting run at "+DateTime.Now);
+		vars.debug("INFO","Resetting "+timer.Run.GetExtendedName()+" at "+DateTime.Now);
 		return (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu");
 	}
 }
 
 start{
 	if(vars.readLog){
-		if(current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0){
-			vars.debug("INFO","Starting Amnesia "+timer.Run.GetExtendedCategoryName()+" run at "+DateTime.Now);
-			return current.dialogue == 88 && old.dialogue == 0;
-		}
-		else if(current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2){
-			vars.debug("INFO","Starting Justine "+timer.Run.CategoryName+" run at "+DateTime.Now);
-			return old.loading1 != current.loading1 && current.loading1 == current.loading2;
+		if((current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0)||
+		   (current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2)){
+			vars.debug("INFO","Starting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+			return (current.dialogue == 88 && old.dialogue == 0)||
+				   (current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2);
 		}
 	}
 }
@@ -175,7 +171,7 @@ update{
 		// Automatically reset the timer in the normal place after a completed run
 		if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled && settings["fullReset"]){
 			if((current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
-				vars.debug("INFO","Saving and resetting completed run at "+DateTime.Now);
+				vars.debug("INFO","Saving and resetting completed "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
 				vars.timerModel.Reset();
 			}
 		}
