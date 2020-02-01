@@ -55,8 +55,7 @@ startup{
 		);
 	}
 	
-	settings.Add("menuPause",false,"Pause timer when on main menu (for Any% with Quitouts)");
-	
+	settings.Add("fullReset",true,"Automatically save and reset splits when starting a new run after a completed one");
 }
 
 shutdown{
@@ -129,7 +128,7 @@ exit{
 }
 
 isLoading{return current.isLoading || current.loading1 != current.loading2 ||
-				(settings["menuPause"] && current.map == "menu_bg.map");}
+		 (current.map == "menu_bg.map" && timer.Run.GetExtendedCategoryName().ToLower().Contains("(quitouts"));}
 
 reset{
 	if(vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
@@ -139,13 +138,15 @@ reset{
 }
 
 start{
-	if(vars.readLog && current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0){
-		vars.debug("INFO","Starting run at "+DateTime.Now);
-		return current.dialogue == 88 && old.dialogue == 0;
-	}
-	else if(vars.readLog && current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2){
-		vars.debug("INFO","Starting run at "+DateTime.Now);
-		return old.loading1 != current.loading1 && current.loading1 == current.loading2;
+	if(vars.readLog){
+		if(current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0){
+			vars.debug("INFO","Starting Amnesia "+timer.Run.GetExtendedCategoryName()+" run at "+DateTime.Now);
+			return current.dialogue == 88 && old.dialogue == 0;
+		}
+		else if(current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2){
+			vars.debug("INFO","Starting Justine "+timer.Run.CategoryName+" run at "+DateTime.Now);
+			return old.loading1 != current.loading1 && current.loading1 == current.loading2;
+		}
 	}
 }
 
@@ -172,7 +173,7 @@ update{
 			}
 		}
 		// Automatically reset the timer in the normal place after a completed run
-		if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled){
+		if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled && settings["fullReset"]){
 			if((current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
 				vars.debug("INFO","Saving and resetting completed run at "+DateTime.Now);
 				vars.timerModel.Reset();
