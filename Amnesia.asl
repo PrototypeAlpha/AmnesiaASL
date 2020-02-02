@@ -18,7 +18,7 @@ startup{
 	
 	Action<string,string> debug = (lvl,text) => {
 		print("[AmnesiaASL] "+lvl+": "+text); 
-		if(vars.selfLog) vars.aslWriter.WriteLine("[{0}] {1}: {2}",DateTime.Now,lvl,text);
+		if(vars.selfLog && lvl!="DEBUG") vars.aslWriter.WriteLine("[{0}] {1}: {2}",DateTime.Now,lvl,text);
 	};
 	vars.debug = debug;
 	
@@ -122,15 +122,15 @@ init
 }
 
 exit{
-	vars.hplReader.Close();
-	vars.debug("INFO","Disconnected from game and closed game log file");
+	try{vars.hplReader.Close();}
+	finally{vars.debug("INFO","Disconnected from game and closed game log file");}
 }
 
 isLoading{return current.isLoading || current.loading1 != current.loading2;}
 
 reset{
 	if(vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
-		vars.debug("INFO","Resetting "+timer.Run.GetExtendedName()+" at "+DateTime.Now);
+		vars.debug("RUN","Resetting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
 		return (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu");
 	}
 }
@@ -139,7 +139,7 @@ start{
 	if(vars.readLog){
 		if((current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0)||
 		   (current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2)){
-			vars.debug("INFO","Starting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+			vars.debug("RUN","Starting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
 			return (current.dialogue == 88 && old.dialogue == 0)||
 				   (current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2);
 		}
@@ -148,14 +148,23 @@ start{
 
 split{
 	if(!vars.readLog || current.map.Contains("menu") || old.map.Contains("menu"))
-		 return;
-	if(current.map == "29_orb_chamber.map" && old.map == current.map)
-		 return (current.dialogue == 13 && old.dialogue != 13)||	//Daniel ending
-				(current.dialogue == 21 && old.dialogue != 21)||	//Alexander ending
-				(current.dialogue == 33 && old.dialogue != 33);		//Agrippa ending
-	if(current.map == "04_final.map" && old.map == current.map)
-		 return  current.dialogue == 66 && old.dialogue != 66;		//Justine ending
-	else return  current.map != old.map;							//Split on level changes
+				return;
+	else if(current.map == "29_orb_chamber.map" && old.map == current.map){
+			if( (current.dialogue == 13 && old.dialogue != 13)||
+				(current.dialogue == 21 && old.dialogue != 21)||
+				(current.dialogue == 33 && old.dialogue != 33)){
+				vars.debug("RUN","Finishing "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+				return (current.dialogue == 13 && old.dialogue != 13)||	// Daniel ending
+					   (current.dialogue == 21 && old.dialogue != 21)||	// Alexander ending
+					   (current.dialogue == 33 && old.dialogue != 33);	// Agrippa ending
+			}
+	}
+	else if(current.map == "04_final.map" && old.map == current.map &&
+			current.dialogue == 66 && old.dialogue != 66){
+				vars.debug("RUN","Finishing "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+				return  current.dialogue == 66 && old.dialogue != 66;	// Justine ending
+	}
+	else 		return  current.map != old.map;							// Split on level changes
 }
 
 update{
@@ -171,11 +180,11 @@ update{
 		// Automatically reset the timer in the normal place after a completed run
 		if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled && settings["fullReset"]){
 			if((current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
-				vars.debug("INFO","Saving and resetting completed "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+				vars.debug("RUN","Saving and resetting completed "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
 				vars.timerModel.Reset();
 			}
 		}
 	}
-	if(current.isLoading != old.isLoading) vars.debug("DEBUG","isLoading = "+current.isLoading);
-	if(current.loading1 != old.loading1) vars.debug("DEBUG","loading1 = "+current.loading1+", loading2 = "+current.loading2);
+	/*if(current.isLoading != old.isLoading) vars.debug("DEBUG","isLoading = "+current.isLoading);
+	if(current.loading1 != old.loading1) vars.debug("DEBUG","loading1 = "+current.loading1+", loading2 = "+current.loading2);*/
 }
