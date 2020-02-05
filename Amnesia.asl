@@ -1,10 +1,22 @@
 state("Amnesia")
 {
+	byte protoload	: 0x781318,0x2C,0x2C;
 	// Found by Tarados
 	byte loading1 	: 0x781320,0x84,0x7C,0x04;
 	byte loading2	: 0x781320,0x84,0x7C;
 	byte dialogue	: 0x768C54,0x58,0x3C,0x54,0x10;
 	// From JDev's DLL
+	bool isLoading	: 0xC7BE2;
+}
+
+state("Amnesia_NoSteam")
+{
+	byte protoload	: 0x7131B8,0x2C,0x2C;
+	
+	byte loading1 	: 0x7131C0,0x84,0x7C,0x04;
+	byte loading2	: 0x7131C0,0x84,0x7C;
+	byte dialogue	: 0x6FA874,0x58,0x3C,0x54,0x10;
+	// Currently unused
 	bool isLoading	: 0xC7BE2;
 }
 
@@ -54,7 +66,8 @@ startup{
 		);
 	}
 	
-	settings.Add("fullReset",true,"Automatically save and reset splits when starting a new run after a completed one");
+	settings.Add("fullReset",true,"Save and reset completed run when starting a new one");
+	settings.Add("altLoad",false,"Alternative loading detection");
 }
 
 shutdown{
@@ -82,8 +95,9 @@ init
 	int UNUSED_BYTE_OFFSET = 0xC7BE2;
 	int ADDR_1 			   = 0xC7884;
 	int ADDR_2 			   = 0xC7A6E;
+	int ADDR_0			   = game.ReadBytes(modules.First().BaseAddress+UNUSED_BYTE_OFFSET, 1)[0];
 	
-	if(game.ReadBytes(modules.First().BaseAddress+UNUSED_BYTE_OFFSET, 1)[0] == 204)
+	if(ADDR_0 == 204)
 	{
 		// Get address of our isLoading var so we can use it as part of our AOB injection later
 		byte[] addrBytes = BitConverter.GetBytes((int)modules.First().BaseAddress+UNUSED_BYTE_OFFSET);
@@ -117,7 +131,10 @@ init
 		if(game.WriteBytes(modules.First().BaseAddress+ADDR_2, payload2.ToArray())){vars.debug("INFO","payload2 injected");}
 		
 		game.Resume();
-	} else vars.debug("WARN","Already injected isLoading var or unsupported game version");
+	}
+	else if(ADDR_0==0||ADDR_0==1) vars.debug("INFO","Already injected isLoading var");
+	else if(settings["altLoad"]) vars.debug("INFO","Using alternative loading detection");
+	else vars.debug("WARN","Unsupported game version");
 	vars.debug("INFO","Connected!");
 }
 
@@ -126,7 +143,16 @@ exit{
 	finally{vars.debug("INFO","Disconnected from game and closed game log file");}
 }
 
-isLoading{return current.isLoading || current.loading1 != current.loading2;}
+isLoading{
+	return (settings["altLoad"] && current.protoload != 1) ||
+		  (!settings["altLoad"] && current.isLoading ) ||
+			current.loading1 != current.loading2;
+}
+isLoading{
+	if(settings["altLoad"])
+		 return current.protoload != 1 || current.loading1 != current.loading2;
+	else return current.isLoading || current.loading1 != current.loading2;
+}
 
 reset{
 	if(vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
@@ -154,6 +180,7 @@ split{
 				(current.dialogue == 21 && old.dialogue != 21)||
 				(current.dialogue == 33 && old.dialogue != 33)){
 				vars.debug("RUN","Finishing "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+				vars.debug("RUN","Final time: "+timer.CurrentTime);
 				return (current.dialogue == 13 && old.dialogue != 13)||	// Daniel ending
 					   (current.dialogue == 21 && old.dialogue != 21)||	// Alexander ending
 					   (current.dialogue == 33 && old.dialogue != 33);	// Agrippa ending
