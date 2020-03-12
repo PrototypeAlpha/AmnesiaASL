@@ -1,10 +1,11 @@
 state("Amnesia")
 {
 	byte protoload	: 0x781318,0x2C,0x2C;
+	string32 audio	: 0x781308,0x48,0x38,0x4,0x8,0x4,0x0;
+	string14 audio2	: 0x768C54,0x58,0x58,0xC,0x44,0x0;
 	// Found by Tarados
 	byte loading1 	: 0x781320,0x84,0x7C,0x04;
 	byte loading2	: 0x781320,0x84,0x7C;
-	byte dialogue	: 0x768C54,0x58,0x3C,0x54,0x10;
 	// From JDev's DLL
 	bool isLoading	: 0xC7BE2;
 }
@@ -12,99 +13,99 @@ state("Amnesia")
 state("Amnesia_NoSteam")
 {
 	byte protoload	: 0x7131B8,0x2C,0x2C;
+	string32 audio	: 0x7131A8,0x48,0x38,0x4,0x8,0x4,0x0;
+	string14 audio2	: 0x7131B8,0xE8,0x34,0x34,0x8,0x4;
 	
 	byte loading1 	: 0x7131C0,0x84,0x7C,0x04;
 	byte loading2	: 0x7131C0,0x84,0x7C;
-	byte dialogue	: 0x6FA874,0x58,0x3C,0x54,0x10;
 	// Found by Sychotix
 	bool isLoading	: 0xD2081;
 }
 
 startup{
 	vars.timerModel = new TimerModel{CurrentState = timer};
-	var baseDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)+"\\Amnesia\\Main\\";
-	vars.aslLog = baseDir+"asl.log";
-	vars.hplLog = baseDir+"hpl.log";
-	vars.selfLog = false;
-	vars.readLog = false;
+	vars.baseDir 	= Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)+"\\Amnesia\\Main\\";
+	vars.aslLog 	= vars.baseDir+"asl.log";
+	vars.hplLog 	= vars.baseDir+"hpl.log";
+	vars.selfLog 	= false;
+	vars.readLog 	= false;
 	
-	Action<string,string> debug = (lvl,text) => {
+	vars.cues 		= new String[]{
+		"CH01L00_DanielsMind01_01", 		//TDD run start
+		"CH03L29_Alexander_Interrupt03_01", //TDD Daniel ending
+		"CH03L29_Ending_Alexander_01",		//TDD Alexander ending
+		"CH03L29_Alexander_AgrippaEnd_01",	//TDD Agrippa ending
+		"ambience_hollow_tinker",			//Justine run start
+		"clarice_end_01"					//Justine run end
+	};
+	
+	vars.log = (Action<string,string>)( (lvl,text) => {
 		print("[AmnesiaASL] "+lvl+": "+text); 
 		if(vars.selfLog) vars.aslWriter.WriteLine("[{0}] {1}: {2}",DateTime.Now,lvl,text);
-	};
-	vars.debug = debug;
+	});
 	
 	try{ // Create our log file
+		if(File.Exists(vars.aslLog)){File.Copy(vars.aslLog,vars.baseDir+"asl.old.log",true);}
+		
 		var aslStream = new FileStream(vars.aslLog, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
 		vars.aslWriter = new StreamWriter(aslStream);
-		debug("INFO","Successfully opened or created log file");
+		vars.log("INFO","Successfully created log file");
 		vars.selfLog = true;
 		vars.aslWriter.AutoFlush = true;
 		vars.aslWriter.Write("----- AmnesiaASL log {0} -----\r\n",DateTime.Now);
 	} catch(Exception e){
-		debug("WARN","Unable to create log file at: "+vars.aslLog);
-		debug("WARN",""+e);
-		debug("WARN","Self log file will be unavailable");
+		vars.log("WARN","Unable to create log file at: "+vars.aslLog);
+		vars.log("WARN",""+e);
+		vars.log("WARN","Self log file will be unavailable");
 	}
 	
-	debug("INFO","HPL Log path: "+vars.hplLog);
+	vars.log("INFO","HPL Log path: "+vars.hplLog);
 	
-	try{ // Open game log file for reading
-		var hplStream = new FileStream(vars.hplLog, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-		hplStream.SetLength(0);
-		vars.hplReader = new StreamReader(hplStream);
-		vars.readLog = true;
-		debug("INFO","Successfully opened game log file");
-	} catch(Exception e){
-		debug("WARN","Unable to open game log file");
-		debug("WARN",""+e);
-		debug("WARN","Automatic features will be unavailable");
-		MessageBox.Show(
-			"Unable to open game log file"+"\n\n"+e+
-			"\n\n"+"Automatic features will be unavailable",
-			"AmnesiaASL | LiveSplit",MessageBoxButtons.OK,MessageBoxIcon.Warning
-		);
-	}
+	vars.openGameLog = (Action)( () => {
+		try{ // Open game log file for reading
+			var hplStream = new FileStream(vars.hplLog, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+			hplStream.SetLength(0);
+			vars.hplReader = new StreamReader(hplStream);
+			vars.readLog = true;
+			vars.log("INFO","Successfully opened game log file");
+		} catch(Exception e){
+			vars.log("WARN","Unable to open game log file");
+			vars.log("WARN",""+e);
+			vars.log("WARN","Most automatic features will be unavailable");
+			MessageBox.Show(
+				"Unable to open game log file"+"\n\n"+e+
+				"\n\n"+"Most automatic features will be unavailable",
+				"AmnesiaASL | LiveSplit",MessageBoxButtons.OK,MessageBoxIcon.Warning
+			);
+		}
+	});
 	
+	settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)");
 	settings.Add("fullReset",true,"Save and reset completed run when starting a new one");
 	settings.Add("altLoad",false,"Alternative loading detection");
 }
 
 shutdown{
 	if(vars.selfLog){
-		vars.debug("INFO","Closing log file");
+		vars.log("INFO","Closing log file");
 		vars.aslWriter.Flush();
 		vars.aslWriter.Close();
 		vars.selfLog = false;
-		vars.debug("INFO","Closed log file");
+		vars.log("INFO","Closed log file");
 	}
 }
 
 init
 {
-	try{ // Open game log file for reading
-		var hplStream = new FileStream(vars.hplLog, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-		hplStream.SetLength(0);
-		vars.hplReader = new StreamReader(hplStream);
-		vars.readLog = true;
-		vars.debug("INFO","Successfully opened game log file");
-	} catch(Exception e){
-		vars.debug("WARN","Unable to open game log file");
-		vars.debug("WARN",""+e);
-		vars.debug("WARN","Automatic features will be unavailable");
-		MessageBox.Show(
-			"Unable to open game log file"+"\n\n"+e+
-			"\n\n"+"Automatic features will be unavailable",
-			"AmnesiaASL | LiveSplit",MessageBoxButtons.OK,MessageBoxIcon.Warning
-		);
-	}
+	vars.log("INFO","Connecting to game...");
+	vars.openGameLog();
 	
-	vars.debug("INFO","Connecting to game...");
-	current.map = "menu_bg.map";
+	if(timer.Run.GameName.Contains("Justine")) current.map = "ptest_menu.map";
+	else current.map = "menu_bg.map";
 	vars.prevMap = null;
 	vars.line = null;
 	
-	if(vars.readLog && settings.SplitEnabled) vars.debug("INFO","Autosplitting enabled");
+	if(vars.readLog && settings.SplitEnabled) vars.log("INFO","Autosplitting enabled");
 	
 	// Amnesia.exe + UNUSED_BYTE_OFFSET is the location where we put our isLoading var
 	// To find a new location for the isloading var, look for a place in memory with a lot of CC bytes and use the address
@@ -125,7 +126,7 @@ init
 	{
 		// Get address of our isLoading var so we can use it as part of our AOB injection later
 		byte[] addrBytes = BitConverter.GetBytes((int)modules.First().BaseAddress+UNUSED_BYTE_OFFSET);
-		vars.debug("DEBUG","addrBytes: "+BitConverter.ToString(addrBytes).Replace("-"," "));
+		vars.log("DEBUG","addrBytes: "+BitConverter.ToString(addrBytes).Replace("-"," "));
 		
 		// Suspend game threads while writing memory to avoid potential crashing
 		game.Suspend();
@@ -137,42 +138,42 @@ init
 		}
 		
 		if(modules.First().ModuleName.Length > 11){
-			vars.debug("DEBUG","Injecting into NoSteam version");
+			vars.log("DEBUG","Injecting into NoSteam version");
 			int ADDR_3 = 0xD2084;
 			
 			byte[] original = BitConverter.GetBytes((int)modules.First().BaseAddress+0x6FA874);
-			vars.debug("DEBUG","original: "+BitConverter.ToString(original).Replace("-"," "));
+			vars.log("DEBUG","original: "+BitConverter.ToString(original).Replace("-"," "));
 			
 			// This payload is responsible for setting our isLoading var to 1
 			// We overwrite CC bytes near our isLoading var and include the original code at the end
 			var cave = new List<byte>(new byte[] { 0xC6, 0x05, 0x01, 0xA1, 0xE9, 0x6D, 0x9B, 0xFB, 0xFF });
 			cave.InsertRange(4,original);
 			cave.InsertRange(2,addrBytes);
-			vars.debug("DEBUG","cave: "+BitConverter.ToString(cave.ToArray()).Replace("-"," "));
-			if(game.WriteBytes(modules.First().BaseAddress+ADDR_3, cave.ToArray())){vars.debug("INFO","cave injected");}
+			vars.log("DEBUG","cave: "+BitConverter.ToString(cave.ToArray()).Replace("-"," "));
+			if(game.WriteBytes(modules.First().BaseAddress+ADDR_3, cave.ToArray())){vars.log("INFO","cave injected");}
 			
 			// This payload is responsible for setting our isLoading var to 1
 			// We overwrite the existing code and jump to our own code
 			var payload1 = new List<byte>(new byte[] { 0xE9, 0x82, 0x64, 0x04, 0x00 });
-			vars.debug("DEBUG","payload1: "+BitConverter.ToString(payload1.ToArray()).Replace("-"," "));
-			if(game.WriteBytes(modules.First().BaseAddress+ADDR_1, payload1.ToArray())){vars.debug("INFO","payload1 injected");}
+			vars.log("DEBUG","payload1: "+BitConverter.ToString(payload1.ToArray()).Replace("-"," "));
+			if(game.WriteBytes(modules.First().BaseAddress+ADDR_1, payload1.ToArray())){vars.log("INFO","payload1 injected");}
 			
 			// This payload is responsible for setting our isLoading var to 0
 			var payload2 = new List<byte>(new byte[] { 0xC6, 0x05, 0x00, 0x90, 0x90 });
 			payload2.InsertRange(2,addrBytes);
-			vars.debug("DEBUG","payload2: "+BitConverter.ToString(payload2.ToArray()).Replace("-"," "));
-			if(game.WriteBytes(modules.First().BaseAddress+ADDR_2, payload2.ToArray())){vars.debug("INFO","payload2 injected");}
+			vars.log("DEBUG","payload2: "+BitConverter.ToString(payload2.ToArray()).Replace("-"," "));
+			if(game.WriteBytes(modules.First().BaseAddress+ADDR_2, payload2.ToArray())){vars.log("INFO","payload2 injected");}
 		}
 		else{
-			vars.debug("DEBUG","Injecting into Steam version");
+			vars.log("DEBUG","Injecting into Steam version");
 			// This payload is responsible for setting our isLoading var to 1
 			// We overwrite useless code that is used for debug/error logging
 			// Search for following bytes in memory: 83 7D E8 10 C6 45 FC 00 72 0C 8B 55 D4
 			// Use the address where the 83 byte is located
 			var payload1 = new List<byte>(new byte[] { 0xC6, 0x05, 0x01, 0x90, 0xEB });
 			payload1.InsertRange(2,addrBytes);
-			vars.debug("DEBUG","payload1: "+BitConverter.ToString(payload1.ToArray()).Replace("-"," "));
-			if(game.WriteBytes(modules.First().BaseAddress+ADDR_1, payload1.ToArray())){vars.debug("INFO","payload1 injected");}
+			vars.log("DEBUG","payload1: "+BitConverter.ToString(payload1.ToArray()).Replace("-"," "));
+			if(game.WriteBytes(modules.First().BaseAddress+ADDR_1, payload1.ToArray())){vars.log("INFO","payload1 injected");}
 			
 			// This payload is responsible for setting our isLoading var to 0
 			// We overwrite useless code that is used for debug/error logging
@@ -180,28 +181,23 @@ init
 			// Use the address where the 45 byte is located
 			var payload2 = new List<byte>(new byte[] { 0x05, 0x00, 0x90, 0x90 });
 			payload2.InsertRange(1,addrBytes);
-			vars.debug("DEBUG","payload2: "+BitConverter.ToString(payload2.ToArray()).Replace("-"," "));
-			if(game.WriteBytes(modules.First().BaseAddress+ADDR_2, payload2.ToArray())){vars.debug("INFO","payload2 injected");}
+			vars.log("DEBUG","payload2: "+BitConverter.ToString(payload2.ToArray()).Replace("-"," "));
+			if(game.WriteBytes(modules.First().BaseAddress+ADDR_2, payload2.ToArray())){vars.log("INFO","payload2 injected");}
 		}
 		
 		game.Resume();
 	}
-	else if(ADDR_0==0||ADDR_0==1) vars.debug("INFO","Already injected isLoading var");
-	else if(settings["altLoad"]) vars.debug("INFO","Using alternative loading detection");
-	else vars.debug("WARN","Unsupported game version");
-	vars.debug("INFO","Connected!");
+	else if(ADDR_0==0||ADDR_0==1) vars.log("INFO","Already injected isLoading var");
+	else if(settings["altLoad"]) vars.log("INFO","Using alternative loading detection");
+	else vars.log("WARN","Unsupported game version");
+	vars.log("INFO","Connected!");
 }
 
 exit{
 	try{vars.hplReader.Close();}
-	finally{vars.debug("INFO","Disconnected from game and closed game log file");}
+	finally{vars.log("INFO","Disconnected from game and closed game log file");}
 }
 
-isLoading{
-	return (settings["altLoad"] && current.protoload != 1) ||
-		  (!settings["altLoad"] && current.isLoading ) ||
-			current.loading1 != current.loading2;
-}
 isLoading{
 	if(settings["altLoad"])
 		 return current.protoload != 1 || current.loading1 != current.loading2;
@@ -210,42 +206,31 @@ isLoading{
 
 reset{
 	if(vars.readLog && (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
-		vars.debug("RUN","Resetting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+		vars.log("RUN","Resetting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
 		return (current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu");
 	}
 }
 
 start{
-	if(vars.readLog){
-		if((current.map == "00_rainy_hall.map" && current.dialogue == 88 && old.dialogue == 0)||
-		   (current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2)){
-			vars.debug("RUN","Starting "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
-			return (current.dialogue == 88 && old.dialogue == 0)||
-				   (current.map == "01_cells.map" && old.loading1 != current.loading1 && current.loading1 == current.loading2);
-		}
+	if(old.audio != current.audio && (current.audio == vars.cues[0] ||
+	  (current.audio == vars.cues[4]) && old.audio2 == "25_amb.ogg")){
+		vars.log("RUN","- Starting "+timer.Run.GetExtendedName()+" run -");
+		return old.audio != current.audio;
 	}
 }
 
 split{
-	if(!vars.readLog || current.map.Contains("menu") || old.map.Contains("menu"))
-				return;
-	else if(current.map == "29_orb_chamber.map" && old.map == current.map){
-			if( (current.dialogue == 13 && old.dialogue != 13)||
-				(current.dialogue == 21 && old.dialogue != 21)||
-				(current.dialogue == 33 && old.dialogue != 33)){
-				vars.debug("RUN","Finishing "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
-				vars.debug("RUN","Final time: "+timer.CurrentTime);
-				return (current.dialogue == 13 && old.dialogue != 13)||	// Daniel ending
-					   (current.dialogue == 21 && old.dialogue != 21)||	// Alexander ending
-					   (current.dialogue == 33 && old.dialogue != 33);	// Agrippa ending
-			}
+	if(vars.readLog && (current.map.Contains("menu") || old.map.Contains("menu"))) return;
+	else if(vars.readLog && settings["fullSplit"] && current.map != old.map)
+		return current.map != old.map;														// Split on level changes
+	else if((old.audio != current.audio || old.audio2 != current.audio2)&&
+			(Array.IndexOf(vars.cues, current.audio) > 0 &&									// Split on TDD endings
+			 Array.IndexOf(vars.cues, current.audio) < 4)||
+			 current.audio2 == vars.cues[5]){												// Split on Justine ending
+		vars.log("RUN","- Finishing "+timer.Run.GetExtendedName()+" run -");
+		vars.log("RUN","- Final time: "+timer.CurrentTime+" -");
+		return old.audio != current.audio || old.audio2 != current.audio2;
 	}
-	else if(current.map == "04_final.map" && old.map == current.map &&
-			current.dialogue == 66 && old.dialogue != 66){
-				vars.debug("RUN","Finishing "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
-				return  current.dialogue == 66 && old.dialogue != 66;	// Justine ending
-	}
-	else 		return  current.map != old.map;							// Split on level changes
 }
 
 update{
@@ -255,17 +240,15 @@ update{
 			vars.line = vars.line.Split("'".ToCharArray())[1];
 			if(current.map != vars.line){
 				current.map = vars.line;
-				vars.debug("MAP",current.map+", was "+old.map);
+				vars.log("MAP",current.map+", was "+old.map);
 			}
 		}
 		// Automatically reset the timer in the normal place after a completed run
 		if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled && settings["fullReset"]){
 			if((current.map == "00_rainy_hall.map" || current.map == "01_cells.map") && old.map.Contains("menu")){
-				vars.debug("RUN","Saving and resetting completed "+timer.Run.GetExtendedName()+" run at "+DateTime.Now);
+				vars.log("RUN","- Saving and resetting completed "+timer.Run.GetExtendedName()+" run -");
 				vars.timerModel.Reset();
 			}
 		}
 	}
-	/*if(current.isLoading != old.isLoading) vars.debug("DEBUG","isLoading = "+current.isLoading);
-	if(current.loading1 != old.loading1) vars.debug("DEBUG","loading1 = "+current.loading1+", loading2 = "+current.loading2);*/
 }
