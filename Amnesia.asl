@@ -21,7 +21,8 @@ state("Amnesia","Steam 1.4")
 	string24 map		  : 0x768C54, 0x5C, 0x60, 0x38;
 }
 
-startup{
+startup
+{
 	// Stores previous map
 	vars.lastMap = "";
 	// Enables resetting the timer if the current run is completed
@@ -164,14 +165,19 @@ init
 
 isLoading{ return current.isLoading || current.loading1 != current.loading2; }
 
-start{
+start
+{
 	vars.lastMap = "";
 	
 	return (current.map == "RainyHall" || current.map == "Cells") &&
 		   (old.audio == null || old.audio == "") && old.audio != current.audio;
 }
 
-reset{ return (current.map == "RainyHall" || current.map == "Cells") && old.map != current.map; }
+reset
+{
+	return ((current.map == "Cells" && timer.Run.GameName.ToLower().Contains("justine")) ||
+			 current.map == "RainyHall") && old.map != current.map;
+}
 
 update{
 	if(current.map != vars.lastMap && old.map != null && old.map != "") vars.lastMap = old.map;
