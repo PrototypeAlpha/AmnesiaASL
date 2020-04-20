@@ -1,7 +1,7 @@
 state("aamfp","NoDRM 1.01")
 {
 	bool 	isLoading	 : 0x1DF7D8;
-	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x04;
+	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x0;
 	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
 	
 	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
@@ -11,7 +11,7 @@ state("aamfp","NoDRM 1.01")
 state("aamfp_NoSteam","NoSteam 1.03")
 {
 	bool 	isLoading	 : 0x1DF7D8;
-	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x04;
+	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x0;
 	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
 	
 	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
@@ -21,7 +21,7 @@ state("aamfp_NoSteam","NoSteam 1.03")
 state("aamfp","Steam 1.03")
 {
 	bool 	isLoading	 : 0x1DF7D8;
-	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x04;
+	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x0;
 	byte 	loading2	 : 0x76984C, 0x38, 0x7C;
 	
 	string9 map			 : 0x754CD4, 0x5C, 0x60, 0x38;
@@ -36,7 +36,8 @@ startup{
 		print("[AmnesiaASL AMFP] "+lvl+": "+text.Replace("-"," "));
 	});
 	
-	settings.Add("autoend",false,"[EXPERIMENTAL] Enable auto-end. Requires editing game files, see github for instructions.");
+	settings.Add("autoend",false,"[EXPERIMENTAL] Enable auto-end. Requires editing game files.");
+	settings.Add("autoend2",false,"See: https://github.com/PrototypeAlpha/AmnesiaASL/commit/f2da42b093bbb255055c9ce1c73f8272843bf249","autoend");
 }
 
 init 
@@ -52,7 +53,7 @@ init
 	
     switch(size)
     {
-		case 8585216:
+		case 8585216: 
 			version = "NoDRM 1.01";
 			break;
 		case 8597504:
@@ -69,8 +70,6 @@ init
 	
 	// Stores previous map
 	vars.lastMap = " ";
-	// Backwards-compatible start offset
-	vars.startOffset = "-00:01:16"; //-00:01:15.74 is more accurate
 	
 	var baseAddr = modules.First().BaseAddress;
 	// aamfp.exe + UNUSED_BYTE_OFFSET is the location where we put our isLoading var
@@ -184,28 +183,41 @@ init
 		game.Resume();
 	}
 	else vars.log("WARN","Unknown or unsupported game version");
-	
+	vars.keepLoading = false;
 }
 
-isLoading{ return current.isLoading || current.loading1 != current.loading2; }
+isLoading{ return current.isLoading || vars.keepLoading || current.loading1 != current.loading2; }
 
 start
 {
 	vars.lastMap = " ";
 	if(current.map != "Mansion01") return;
 	
-	// Use backwards-compatible start if offset isn't 00:00
-	if(timer.Run.GameName.ToLower().Contains("pig") && timer.Run.Offset.ToString() != "00:00:00"){
-		// Set the start offset to -1:16 if it isn't already
-		if(timer.Run.Offset.ToString() != vars.startOffset) timer.Run.Offset = TimeSpan.Parse(vars.startOffset);
-		return old.loading1 != old.loading2 && current.loading1 == current.loading2;
+	// Set the start offset to 00:00 to force legacy timing (-01:16) to use the new timing
+	if(timer.Run.Offset.ToString() != "00:00:00" &&
+	  (timer.Run.GameName.ToLower().Contains("amfp") || timer.Run.GameName.ToLower().Contains("pig"))){
+		timer.Run.Offset = TimeSpan.Parse("00:00:00");
 	}
 	return current.playerActive && !old.playerActive;
 }
 
 reset{ return current.map == "Mansion01" && old.map != current.map; }
 
-update{ if(old.map != null && old.map != "") vars.lastMap = old.map; }
+update{
+	
+	if(old.map != null && old.map != "") vars.lastMap = old.map;
+	
+	// Fix the timer unpausing during the part of loading where the text moves up,
+	// since you don't regain control until the text starts fading out (unlike in TDD)
+	if(!current.isLoading && old.isLoading){
+		vars.keepLoading = true;
+		vars.log("LOAD","Staying paused until we can move again");
+	}
+	if(vars.keepLoading && current.loading1 != current.loading2){
+		vars.keepLoading = false;
+		vars.log("LOAD","We can move again, unpausing");
+	}
+}
 
 split
 {
@@ -214,5 +226,10 @@ split
 	
 	if(current.map == "Temple" && settings["autoend"]) return !current.playerActive && old.playerActive;
 	
-	return current.map != null && current.map != "" && vars.lastMap != current.map;
+	if(current.map != null && current.map != ""){
+		if(old.map != null && old.map != "" )
+			 return old.map != current.map;
+		else return vars.lastMap != current.map;
+	}
+	
 }
