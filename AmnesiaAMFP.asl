@@ -1,11 +1,12 @@
 state("aamfp","NoDRM 1.01")
 {
 	bool 	isLoading	 : 0x1DF7D8;
-	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x0;
+	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
 	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
 	
-	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
 	bool 	playerActive : 0x74CA04, 0x84, 0x58;
+	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
+	float 	gameTime	 : 0x74CA04, 0x84, 0x2D0,0x60;
 }
 
 state("aamfp_NoSteam","NoSteam 1.03")
@@ -14,8 +15,9 @@ state("aamfp_NoSteam","NoSteam 1.03")
 	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x0;
 	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
 	
-	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
 	bool 	playerActive : 0x74FB84, 0x84, 0x58;
+	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
+	float 	gameTime	 : 0x74FB84, 0x84, 0x2D0,0x60;
 }
 
 state("aamfp","Steam 1.03")
@@ -24,13 +26,14 @@ state("aamfp","Steam 1.03")
 	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x0;
 	byte 	loading2	 : 0x76984C, 0x38, 0x7C;
 	
-	string9 map			 : 0x754CD4, 0x5C, 0x60, 0x38;
 	bool 	playerActive : 0x754CD4, 0x84, 0x58;
+	string9 map			 : 0x754CD4, 0x5C, 0x60, 0x38;
+	float 	gameTime	 : 0x754CD4, 0x84, 0x2D0,0x60;
 }
 
 startup{
 	// Stores previous map
-	vars.lastMap = " ";
+	vars.lastMap = "";
 	
 	vars.log = (Action<string,string>)( (lvl,text) => {
 		print("[AmnesiaASL AMFP] "+lvl+": "+text.Replace("-"," "));
@@ -41,7 +44,9 @@ startup{
 }
 
 init 
-{ 
+{
+	vars.keepLoading = false;
+	
 	// Fix for rare occasions when NTDLL is loaded first
 	if(!modules.First().ModuleName.ToLower().Contains("aamfp")) return;
 	
@@ -183,22 +188,21 @@ init
 		game.Resume();
 	}
 	else vars.log("WARN","Unknown or unsupported game version");
-	vars.keepLoading = false;
+	
 }
 
 isLoading{ return current.isLoading || vars.keepLoading || current.loading1 != current.loading2; }
 
 start
 {
-	vars.lastMap = " ";
-	if(current.map != "Mansion01") return;
+	vars.lastMap = "";
 	
 	// Set the start offset to 00:00 to force legacy timing (-01:16) to use the new timing
 	if(timer.Run.Offset.ToString() != "00:00:00" &&
 	  (timer.Run.GameName.ToLower().Contains("amfp") || timer.Run.GameName.ToLower().Contains("pig"))){
 		timer.Run.Offset = TimeSpan.Parse("00:00:00");
 	}
-	return current.playerActive && !old.playerActive;
+	if(current.map == "Mansion01") return current.playerActive && !old.playerActive;
 }
 
 reset{ return current.map == "Mansion01" && old.map != current.map; }
@@ -209,24 +213,20 @@ update{
 	
 	// Fix the timer unpausing during the part of loading where the text moves up,
 	// since you don't regain control until the text starts fading out (unlike in TDD)
-	if(!current.isLoading && old.isLoading){
-		vars.keepLoading = true;
-		vars.log("LOAD","Staying paused until we can move again");
-	}
-	if(vars.keepLoading && current.loading1 != current.loading2){
-		vars.keepLoading = false;
-		vars.log("LOAD","We can move again, unpausing");
-	}
+	if(!current.isLoading && old.isLoading) vars.keepLoading = true;
+	else if(vars.keepLoading && current.gameTime != old.gameTime) vars.keepLoading = false;
 }
 
 split
 {
-	if(current.map != null && current.map != "" && vars.lastMap != current.map)
+	if(current.map == "Temple" && settings["autoend"]) return !current.playerActive && old.playerActive;
+	// Prevent splitting when loading from menu
+	if(current.loading1 != current.loading2) return;
+	
+	if(current.map != null && current.map != "" && vars.lastMap != "" && vars.lastMap != current.map)
 		vars.log("MAP",current.map+", was "+vars.lastMap);
 	
-	if(current.map == "Temple" && settings["autoend"]) return !current.playerActive && old.playerActive;
-	
-	if(current.map != null && current.map != ""){
+	if(current.map != null && current.map != "" && vars.lastMap != ""){
 		if(old.map != null && old.map != "" )
 			 return old.map != current.map;
 		else return vars.lastMap != current.map;
