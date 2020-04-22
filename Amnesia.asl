@@ -1,6 +1,6 @@
 state("Amnesia_NoSteam","NoSteam 1.4")
 {
-	bool 	 isLoading	  : 0x5D0C6E;
+	bool 	 isLoading	  : 0xD2081;
 	byte 	 loading1 	  : 0x7131C0, 0x84, 0x7C, 0x04;
 	byte 	 loading2	  : 0x7131C0, 0x84, 0x7C;
 	
@@ -12,7 +12,7 @@ state("Amnesia_NoSteam","NoSteam 1.4")
 
 state("Amnesia","Steam 1.4")
 {
-	bool 	 isLoading	  : 0x3A6C20;
+	bool 	 isLoading	  : 0x9A851;
 	byte 	 loading1 	  : 0x781320, 0x84, 0x7C, 0x04;
 	byte 	 loading2	  : 0x781320, 0x84, 0x7C;
 	
@@ -78,25 +78,25 @@ init
 			ADDR_C,				//Cave
 			ADDR_1,				//OnLeave
 			ADDR_2;				//OnEnter
-	byte[]	BYTE_J 				= new byte[3],
-			BYTE_1				= new byte[3];
+	byte[]	BYTE_J 				= new byte[5],
+			BYTE_1				= new byte[5];
 	
 	if	 (version=="Steam 1.4"){
-			UNUSED_BYTE_OFFSET 	= 0x3A6C20;
-			ADDR_C 			   	= 0x3A6C21;
-			ADDR_1 			   	= 0xC7842;
-			ADDR_2 			   	= 0xC7A61;
-			BYTE_J 				= new byte[] { 0x15, 0x0C, 0xD2 };
-			BYTE_1 				= new byte[] { 0xDA, 0xF3, 0x2D };
+			UNUSED_BYTE_OFFSET 	= 0x9A851;
+			ADDR_C 			   	= 0x9A852;
+			ADDR_1 			   	= 0xC78A2;
+			ADDR_2 			   	= 0xC7A6D;
+			BYTE_J 				= new byte[] { 0xE9, 0x44, 0xD0, 0x02, 0x00 };
+			BYTE_1 				= new byte[] { 0xE9, 0xAB, 0x2F, 0xFD, 0xFF };
 	}
 	else/*version=="NoSteam 1.4"*/
 	{
-			UNUSED_BYTE_OFFSET 	= 0x5D0C6E;
-			ADDR_C 			   	= 0x5D0C6F;
+			UNUSED_BYTE_OFFSET 	= 0xD2081;
+			ADDR_C 			   	= 0xD2082;
 			ADDR_1 			   	= 0x8BBFD;
-			ADDR_2 			   	= 0x8BE62;
-			BYTE_J 				= new byte[] { 0x82, 0xAF, 0xAB };
-			BYTE_1				= new byte[] { 0x6D, 0x50, 0x54 };
+			ADDR_2 			   	= 0x8BDF8;
+			BYTE_J 				= new byte[] { 0xE9, 0x6F, 0x9B, 0xFB, 0xFF };
+			BYTE_1				= new byte[] { 0xE9, 0x80, 0x64, 0x04, 0x00 };
 	}
 	
 	 // Check if first byte at our isLoading address is CC
@@ -108,7 +108,7 @@ init
 		vars.log("INFO","Starting injections");
 		// Get address of our isLoading var so we can use it as part of our AOB injection later
 		byte[] addrBytes = BitConverter.GetBytes((int) baseAddr+UNUSED_BYTE_OFFSET);
-		vars.log("DEBUG","addrBytes: "+BitConverter.ToString(addrBytes));
+		//vars.log("DEBUG","addrBytes: "+BitConverter.ToString(addrBytes));
 		
 		// Suspend game threads while writing memory to avoid potential crashing
 		game.Suspend();
@@ -121,12 +121,7 @@ init
 		
 		// The original code at our 1st injection address
 		byte[] originalCode = game.ReadBytes(baseAddr+ADDR_1, 5);
-		vars.log("DEBUG","originalCode: "+BitConverter.ToString(originalCode));
-		
-		// The return jump
-		var jump = new List<byte>(new byte[] { 0xE9, 0xFF });
-		jump.InsertRange(1, BYTE_J);
-		vars.log("DEBUG","jump: "+BitConverter.ToString(jump.ToArray()));
+		//vars.log("DEBUG","originalCode: "+BitConverter.ToString(originalCode));
 		
 		// The code cave
 		// We overwrite CC bytes 2 bytes after our isLoading var,
@@ -135,18 +130,18 @@ init
 		var cave = new List<byte>(new byte[] { 0xC6, 0x05, 0x01});
 		cave.InsertRange(2,addrBytes);
 		cave.AddRange(originalCode);
-		cave.AddRange(jump);
-		vars.log("DEBUG","cave: "+BitConverter.ToString(cave.ToArray()));
+		cave.AddRange(BYTE_J);
+		//vars.log("DEBUG","cave: "+BitConverter.ToString(cave.ToArray()));
 		
 		if(game.WriteBytes(baseAddr+ADDR_C, cave.ToArray())){vars.log("INFO","cave injected");}
 		
 		// This payload is responsible for setting our isLoading var to 1
 		// We overwrite the existing code and jump to the code in our cave
-		var payload1 = new List<byte>(new byte[] { 0xE9, 0x00 });
-		payload1.InsertRange(1, BYTE_1);
-		vars.log("DEBUG","payload1: "+BitConverter.ToString(payload1.ToArray()));
+		//var payload1 = new List<byte>(new byte[] { 0xE9 });
+		//payload1.AddRange(BYTE_1);
+		vars.log("DEBUG","payload1: "+BitConverter.ToString(BYTE_1));
 		
-		if(game.WriteBytes(baseAddr+ADDR_1, payload1.ToArray())){vars.log("INFO","payload1 injected");}
+		if(game.WriteBytes(baseAddr+ADDR_1, BYTE_1)){vars.log("INFO","payload1 injected");}
 		
 		// This payload is responsible for setting our isLoading var to 0
 		// We overwrite the existing code and set our isLoading var
