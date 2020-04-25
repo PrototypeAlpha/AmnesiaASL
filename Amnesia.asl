@@ -25,8 +25,6 @@ startup
 {
 	// Stores previous map
 	vars.lastMap = "";
-	// Enables resetting the timer if the current run is completed
-	vars.timerModel = new TimerModel{CurrentState = timer};
 	
 	vars.cues 		= new String[]{
 		"CH01L00_DanielsMind01_01", 		//TDD run start
@@ -42,7 +40,6 @@ startup
 	});
 	
 	settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)");
-	settings.Add("fullReset",true,"Save completed run and reset timer when starting a new run");
 }
 
 init 
@@ -164,26 +161,16 @@ start
 {
 	vars.lastMap = "";
 	
-	return (current.map == "RainyHall" || current.map == "Cells") &&
+	return (current.map == "RainyHall" || current.map == "L01Cells") &&
 		   (old.audio == null || old.audio == "") && old.audio != current.audio;
 }
 
 reset
 {
-	return ((current.map == "Cells" && timer.Run.GameName.ToLower().Contains("justine")) ||
-			 current.map == "RainyHall") && old.map != current.map;
+	return (current.map == "L01Cells" || current.map == "RainyHall") && old.map != current.map;
 }
 
-update{
-	if(current.map != vars.lastMap && old.map != null && old.map != "") vars.lastMap = old.map;
-	
-	// Automatically reset the timer in the normal place after a completed run
-	if(timer.CurrentPhase == TimerPhase.Ended && settings.ResetEnabled && settings["fullReset"]){
-		if((current.map == "RainyHall" || current.map == "Cells") && old.map != null){
-			vars.timerModel.Reset();
-		}
-	}
-}
+update{ if(current.map != vars.lastMap && old.map != null && old.map != "") vars.lastMap = old.map; }
 
 split
 {
