@@ -12,7 +12,7 @@ state("aamfp","NoDRM 1.01")
 state("aamfp_NoSteam","NoSteam 1.03")
 {
 	bool 	isLoading	 : 0x1DF7D8;
-	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x0;
+	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
 	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
 	
 	bool 	playerActive : 0x74FB84, 0x84, 0x58;
@@ -23,7 +23,7 @@ state("aamfp_NoSteam","NoSteam 1.03")
 state("aamfp","Steam 1.03")
 {
 	bool 	isLoading	 : 0x1DF7D8;
-	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x0;
+	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x4;
 	byte 	loading2	 : 0x76984C, 0x38, 0x7C;
 	
 	bool 	playerActive : 0x754CD4, 0x84, 0x58;
@@ -32,11 +32,25 @@ state("aamfp","Steam 1.03")
 }
 
 startup{
+	var aslName = "AmnesiaASL AMFP";
+	if(timer.CurrentTimingMethod == TimingMethod.RealTime){
+		
+		var timingMessage = MessageBox.Show(
+			"This game uses Game Time (time without loads) as the main timing method.\n"+
+			"LiveSplit is currently set to show Real Time (time INCLUDING loads).\n"+
+			"Would you like the timing method to be set to Game Time for you?",
+			aslName+" | LiveSplit",
+			MessageBoxButtons.YesNo,MessageBoxIcon.Question
+		);
+		if (timingMessage == DialogResult.Yes)
+			timer.CurrentTimingMethod = TimingMethod.GameTime;
+	}
+	
 	// Stores previous map
 	vars.lastMap = "";
 	
 	vars.log = (Action<string,string>)( (lvl,text) => {
-		print("[AmnesiaASL AMFP] "+lvl+": "+text.Replace("-"," "));
+		print("["+aslName+"] "+lvl+": "+text.Replace("-"," "));
 	});
 	
 	settings.Add("autoend",false,"[EXPERIMENTAL] Enable auto-end. Requires editing game files.");

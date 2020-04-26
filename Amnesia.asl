@@ -23,6 +23,20 @@ state("Amnesia","Steam 1.4")
 
 startup
 {
+	var aslName = "AmnesiaASL TDD";
+	if(timer.CurrentTimingMethod == TimingMethod.RealTime){
+		
+		var timingMessage = MessageBox.Show(
+			"This game uses Game Time (time without loads) as the main timing method.\n"+
+			"LiveSplit is currently set to show Real Time (time INCLUDING loads).\n"+
+			"Would you like the timing method to be set to Game Time for you?",
+			aslName+" | LiveSplit",
+			MessageBoxButtons.YesNo,MessageBoxIcon.Question
+		);
+		if (timingMessage == DialogResult.Yes)
+			timer.CurrentTimingMethod = TimingMethod.GameTime;
+	}
+	
 	// Stores previous map
 	vars.lastMap = "";
 	
@@ -36,7 +50,7 @@ startup
 	};
 	
 	vars.log = (Action<string,string>)( (lvl,text) => {
-		print("[AmnesiaASL TDD] "+lvl+": "+text.Replace("-"," ")); 
+		print("["+aslName+"] "+lvl+": "+text.Replace("-"," ")); 
 	});
 	
 	settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)");
