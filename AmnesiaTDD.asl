@@ -202,7 +202,7 @@ start
 	
 	// TDD run start
 	if(current.map == "RainyHall")
-		return old.audio != current.audio;
+		return old.audio != current.audio && current.audio == "CH01L00_DanielsMind01_01";
 	// Justine run start
 	if(current.map == "L01Cells")
 		return current.loading1 == current.loading2 && old.loading1 != old.loading2;
