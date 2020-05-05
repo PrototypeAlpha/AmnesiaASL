@@ -5,6 +5,7 @@ state("Amnesia","1.50")
 	
 	string32	audio		: 0x7131A8, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
 	string24	map			: 0x6FA874, 0x5C, 0x60, 0x38;
+	bool 	 	pActive		: 0x6FA874, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FA874, 0x84, 0xD4;
 	
 }
@@ -16,6 +17,7 @@ state("Amnesia_NoSteam","1.50")
 	
 	string32 	audio		: 0x7131A8, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
 	string24 	map			: 0x6FA874, 0x5C, 0x60, 0x38;
+	bool 	 	pActive		: 0x6FA874, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FA874, 0x84, 0xD4;
 	
 }
@@ -27,6 +29,7 @@ state("Amnesia","Steam 1.50")
 	
 	string32 	audio		: 0x781308, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
 	string24 	map			: 0x768C54, 0x5C, 0x60, 0x38;
+	bool 	 	pActive		: 0x768C54, 0x84, 0x58;
 	float 	 	pMSMul		: 0x768C54, 0x84, 0xD4;
 }
 
@@ -205,7 +208,7 @@ start
 		return old.audio != current.audio && current.audio == "CH01L00_DanielsMind01_01";
 	// Justine run start
 	if(current.map == "L01Cells")
-		return current.loading1 == current.loading2 && old.loading1 != old.loading2;
+		return current.loading1 == current.loading2 && old.loading1 != current.loading1;
 }
 
 reset{ return current.map != old.map && (current.map == "RainyHall" || current.map == "L01Cells"); }
@@ -228,7 +231,7 @@ split
 				   current.audio == "CH03L29_Alexander_AgrippaEnd_01";	 // TDD Agrippa ending
 		// Justine run end
 		if(current.map == "L04Final")
-			return current.pMSMul == 0.3f && old.pMSMul == 0.4f;
+			return !current.pActive && current.pMSMul == 0.3f && old.pMSMul == 0.4f;
 	}
 	// Level changes	
 	return current.map != null && current.map != "" && vars.lastMap != "" &&
