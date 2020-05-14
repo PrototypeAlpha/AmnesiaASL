@@ -7,7 +7,7 @@ state("Amnesia","1.50")
 	string24	map			: 0x6FA874, 0x5C, 0x60, 0x38;
 	bool 	 	pActive		: 0x6FA874, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FA874, 0x84, 0xD4;
-	
+	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
 }
 
 state("Amnesia_NoSteam","1.50")
@@ -19,7 +19,7 @@ state("Amnesia_NoSteam","1.50")
 	string24 	map			: 0x6FA874, 0x5C, 0x60, 0x38;
 	bool 	 	pActive		: 0x6FA874, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FA874, 0x84, 0xD4;
-	
+	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
 }
 
 state("Amnesia","Steam 1.50")
@@ -31,6 +31,7 @@ state("Amnesia","Steam 1.50")
 	string24 	map			: 0x768C54, 0x5C, 0x60, 0x38;
 	bool 	 	pActive		: 0x768C54, 0x84, 0x58;
 	float 	 	pMSMul		: 0x768C54, 0x84, 0xD4;
+	float		pPosX		: 0x768C54, 0x84, 0x54, 0x48;
 }
 
 startup
@@ -230,8 +231,11 @@ split
 				   current.audio == "CH03L29_Ending_Alexander_01"	  || // TDD Alexander ending
 				   current.audio == "CH03L29_Alexander_AgrippaEnd_01";	 // TDD Agrippa ending
 		// Justine run end
-		if(current.map == "L04Final")
+		if(current.map == "L04Final"){
+			if(current.pActive && current.pPosX > 37.62f)
+				return current.pActive && old.pPosX < 37.62f && current.pPosX > 37.62f;
 			return !current.pActive && current.pMSMul == 0.3f && old.pMSMul == 0.4f;
+		}
 	}
 	// Level changes	
 	return current.map != null && current.map != "" && vars.lastMap != "" &&
