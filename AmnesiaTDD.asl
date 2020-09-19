@@ -231,6 +231,7 @@ update
 
 split
 {
+	if(current.map != old.map &&  (current.map == "RainyHall" || current.map == "L01Cells")) return;
 	//if(current.map != null && current.map != "" && vars.lastMap != current.map)
 	//	vars.log("MAP","\""+current.map+"\", was \""+vars.lastMap+"\"");
 	if(current.map == old.map){
