@@ -11,7 +11,7 @@ state("Amnesia","1.50")
 	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
 }
 
-state("Amnesia_NoSteam","1.50")
+state("Amnesia_NoSteam","NoSteam 1.50")
 {
 	byte 	 	loading1	: 0x7131C0, 0x84, 0x7C, 0x04;
 	byte 	 	loading2	: 0x7131C0, 0x84, 0x7C;
@@ -95,8 +95,9 @@ startup
 		return proc.WriteBytes(src, newBytes.ToArray());
 	});
 	
-	vars.sigLeave = new SigScanTarget(3, "89 45 ?? A1 ?? ?? ?? ?? 8B 88"); // AOB signature for OnLeave. Use the address at A1
-	vars.sigEnter = new SigScanTarget(1, "02 C6 ?? ?? 04 E8 ?? ?? ?? FF"); // AOB signature for OnEnter. Use the address at C6
+	vars.sigGametime = new SigScanTarget(0, "8B 4E 68 C6 45 D3 01");			// AOB signature for Gametime. Use the address at 8B
+	vars.sigMapload  = new SigScanTarget(3, "89 45 ?? A1 ?? ?? ?? ?? 8B 88");	// AOB signature for Mapload. Use the address at A1
+	vars.sigMenuload = new SigScanTarget(0, "8B ?? 70 8B ?? 30 6?");			// AOB signature for Menu. Use the address at 8B
 }
 
 shutdown
@@ -106,8 +107,16 @@ shutdown
 		// Replace injected code with the original code
 		game.Suspend();
 		vars.log("DEBUG","Restoring original code");
-		vars.CopyMemory(game, (IntPtr) vars.origLeave, 5, (IntPtr) vars.ptrLeave);
-		vars.CopyMemory(game, (IntPtr) vars.origEnter, 9, (IntPtr) vars.ptrEnter);
+		
+		vars.CopyMemory(game, (IntPtr) vars.origGametime, 7, (IntPtr) vars.ptrGametime);
+		vars.log("DEBUG","Bytes at Gametime address: "+BitConverter.ToString(game.ReadBytes((IntPtr) vars.ptrGametime, 7)).Replace("-"," "));
+		
+		vars.CopyMemory(game, (IntPtr) vars.origMapload, 5, (IntPtr) vars.ptrMapload);
+		vars.log("DEBUG","Bytes at Mapload address: "+BitConverter.ToString(game.ReadBytes((IntPtr) vars.ptrMapload, 5)).Replace("-"," "));
+		
+		vars.CopyMemory(game, (IntPtr) vars.origMenu, 6, (IntPtr) vars.ptrMenuload);
+		vars.log("DEBUG","Bytes at Menu address: "+BitConverter.ToString(game.ReadBytes((IntPtr) vars.ptrMenuload, 6)).Replace("-"," "));
+		
 		game.FreeMemory((IntPtr) vars.aslMem);
 		vars.injected = false;
 		vars.log("DEBUG","Restored original code");
@@ -139,8 +148,7 @@ init
 			version = "Unknown";
 			var gameMessageText = "Website/launcher you bought the game from\r\n"+name+"="+size;
 			var gameMessage = MessageBox.Show(
-				"It appears you're running an unknown version of the game.\n"+
-				"Load removal MAY work, however the other features probably won't.\n\n"+
+				"It appears you're running an unknown version of the game.\n\n"+
 				"Please @PrototypeAlpha#7561 on the HPL Games Speedrunning discord with "+
 				"the following:\n"+gameMessageText+"\n\n"+
 				"Press OK to copy the above info to the clipboard and close this message.",
@@ -152,56 +160,86 @@ init
 	}
 	vars.log("INFO",size+" = " + version);
 	
+	var scanner = new SignatureScanner(game, baseAddr, size);
+	
+	// Scan memory for Gametime signature
+	IntPtr staticGametime	=	vars.ptrGametime	=	scanner.Scan((SigScanTarget) vars.sigGametime);
+	// Scan memory for Mapload signature
+	IntPtr staticMapload	=	vars.ptrMapload		=	scanner.Scan((SigScanTarget) vars.sigMapload);
+	// Scan memory for Menuload signature
+	IntPtr staticMenuload	=	vars.ptrMenuload	=	scanner.Scan((SigScanTarget) vars.sigMenuload);
+	
 	// Allocate memory for our code instead of looking for a code cave
 	vars.log("DEBUG","Allocating memory...");
-	var aslMem = vars.aslMem = game.AllocateMemory(32);
+	var aslMem = vars.aslMem = game.AllocateMemory(64);
 	
 	var addrMem = BitConverter.GetBytes((int) aslMem).Reverse().ToArray();
 	vars.log("DEBUG","aslMem address: "+BitConverter.ToString(addrMem).Replace("-",""));
 	
-	var scanner = new SignatureScanner(game, baseAddr, size);
-	
-	// Scan memory for leave signature
-	IntPtr scanLeave = scanner.Scan((SigScanTarget) vars.sigLeave);
-	vars.ptrLeave = scanLeave;
-	// Scan memory for enter signature
-	IntPtr scanEnter = scanner.Scan((SigScanTarget) vars.sigEnter);
-	vars.ptrEnter = scanEnter;
-	
-	if(scanLeave == IntPtr.Zero || scanEnter == IntPtr.Zero)
+	if(staticGametime == IntPtr.Zero || staticMapload == IntPtr.Zero || staticMenuload == IntPtr.Zero){
 		vars.log("ERROR","Can't find signatures. Unknown game version?");
+		game.FreeMemory((IntPtr) aslMem);
+		MessageBox.Show(
+			"Can't find signatures.\n"+
+			"\nstaticGametime = "+staticGametime+
+			"\nstaticMapload = "+staticMapload+
+			"\nstaticMenuload = "+staticMenuload,
+			vars.aslName+" | LiveSplit",
+			MessageBoxButtons.OK,MessageBoxIcon.Error
+		);
+	}	
 	else
 	{
-			vars.log("INFO","Starting inject");
-			var addrLeave = BitConverter.GetBytes((int) scanLeave).Reverse().ToArray();
-			vars.log("DEBUG","Leave address: "+BitConverter.ToString(addrLeave).Replace("-",""));
-			vars.log("DEBUG","Original bytes at Leave address: "+BitConverter.ToString(game.ReadBytes(scanLeave, 5)).Replace("-"," "));
-			
-			IntPtr codeLeave = aslMem+1;
-			vars.WriteMov(game, codeLeave, 7, aslMem, new byte[] {1});	// Write instruction to set isLoading to 1
-			vars.CopyMemory(game, scanLeave, 5, codeLeave+7);			// Write original code
-			game.WriteJumpInstruction(codeLeave+7+5, scanLeave+5);		// Write jump out
-			game.WriteJumpInstruction(scanLeave, codeLeave);			// Write jump in
-			
-			var addrEnter = BitConverter.GetBytes((int) scanEnter).Reverse().ToArray();
-			vars.log("DEBUG","Enter address: "+BitConverter.ToString(addrEnter).Replace("-",""));
-			vars.log("DEBUG","Original bytes at Enter address: "+BitConverter.ToString(game.ReadBytes(scanEnter, 9)).Replace("-"," "));
-			
-			IntPtr codeEnter = codeLeave+7+5+5;
-			
-			vars.CopyMemory(game, scanEnter, 9, codeEnter);				// Write backup of original code
-			vars.WriteMov(game, scanEnter, 9, aslMem, new byte[] {0});	// Write instruction to set isLoading to 0
-			
-			vars.injected = true;
-			vars.origLeave = codeLeave+7;
-			vars.origEnter = codeEnter;
-			vars.log("INFO","Finished injecting");
+		vars.log("INFO","Starting inject");
+		game.Suspend();
+		
+		// Set loading var to 1 in case we're just starting up the game
+		game.WriteBytes((IntPtr)aslMem, new byte[] {1});
+		
+		var addrGametime = BitConverter.GetBytes((int) staticGametime).Reverse().ToArray();
+		vars.log("DEBUG","Gametime address: "+BitConverter.ToString(addrGametime).Replace("-",""));
+		vars.log("DEBUG","Original bytes at Gametime address: "+BitConverter.ToString(game.ReadBytes(staticGametime, 7)).Replace("-"," "));
+		
+		IntPtr codeGametime = aslMem+1;
+		vars.WriteMov(game, codeGametime, 7, aslMem, new byte[] {0});	// Write instruction to set isLoading to 0
+		vars.CopyMemory(game, staticGametime, 7, codeGametime+7);		// Write original code
+		game.WriteJumpInstruction(codeGametime+7+7, staticGametime+7);	// Write jump out
+		game.WriteJumpInstruction(staticGametime, codeGametime);		// Write jump in
+		
+		var addrMapload = BitConverter.GetBytes((int) staticMapload).Reverse().ToArray();
+		vars.log("DEBUG","staticMapload address: "+BitConverter.ToString(addrMapload).Replace("-",""));
+		vars.log("DEBUG","Original bytes at staticMapload address: "+BitConverter.ToString(game.ReadBytes(staticMapload, 5)).Replace("-"," "));
+		
+		IntPtr codeMapload = codeGametime+7+7+5;
+		vars.WriteMov(game, codeMapload, 7, aslMem, new byte[] {1});	// Write instruction to set isLoading to 1
+		vars.CopyMemory(game, staticMapload, 5, codeMapload+7);			// Write original code
+		game.WriteJumpInstruction(codeMapload+7+5, staticMapload+5);	// Write jump out
+		game.WriteJumpInstruction(staticMapload, codeMapload);			// Write jump in
+		
+		var addrMenuload = BitConverter.GetBytes((int) staticMenuload).Reverse().ToArray();
+		vars.log("DEBUG","Menu address: "+BitConverter.ToString(addrMenuload).Replace("-",""));
+		vars.log("DEBUG","Original bytes at Menu address: "+BitConverter.ToString(game.ReadBytes(staticMenuload, 6)).Replace("-"," "));
+		
+		IntPtr codeMenuload = codeMapload+7+5+5;
+		vars.WriteMov(game, codeMenuload, 6, aslMem, new byte[] {1});	// Write instruction to set isLoading to 1
+		vars.CopyMemory(game, staticMenuload, 6, codeMenuload+7);		// Write original code
+		game.WriteJumpInstruction(codeMenuload+7+6, staticMenuload+6);	// Write jump out
+		game.WriteJumpInstruction(staticMenuload, codeMenuload);		// Write jump in
+		
+		vars.injected = true;
+		
+		vars.origGametime = codeGametime+7;
+		vars.origMapload  = codeMapload+7;
+		vars.origMenu     = codeMenuload+7;
+		
+		vars.log("INFO","Finished injecting");
+		game.Resume();
 	}
 	
 	vars.isLoading = new MemoryWatcher<bool>(aslMem);
 }
 
-isLoading{ return vars.isLoading.Current || current.loading1 != current.loading2; }
+isLoading{ return vars.isLoading.Current; }
 
 start
 {
