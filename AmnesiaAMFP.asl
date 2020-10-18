@@ -282,7 +282,7 @@ update
 
 split
 {
-	if(current.map != old.map && current.map == "Mansion01")) return;
+	if(current.map != old.map && current.map == "Mansion01") return;
 	if(current.map == "Temple" && settings["autoend"]) return !current.pActive && old.pActive;
 	// Prevent splitting when loading from menu
 	//if(current.loading1 != current.loading2) return;
