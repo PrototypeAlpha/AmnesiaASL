@@ -18,7 +18,7 @@ state("aamfp","NoDRM 1.01")
 	float 	loading		 : 0x74CA04, 0xAC, 0x164;
 }
 */
-state("aamfp","1.03")
+state("aamfp","NoDRM 1.03")
 {
 	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
 	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
@@ -158,7 +158,7 @@ init
 			version = "Steam 1.01";
 			break;
 		case 8597504:
-			version = name == "amfp.exe" ? "NoDRM 1.03" : "NoSteam 1.03";
+			version = name == "aamfp.exe" ? "NoDRM 1.03" : "NoSteam 1.03";
 			break;
 		case 8871936:
 			version = "Steam 1.03";
