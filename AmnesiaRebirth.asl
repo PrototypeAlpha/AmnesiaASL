@@ -5,9 +5,11 @@ state("AmnesiaRebirth","Steam 1.31/1.04")
 	byte	 parisWall	: 0x009DCBC8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
 
-start{ return old.mapName != current.mapName && current.mapName == "01_01_plane_wreckage.hpm"; }
-
 isLoading{ return current.loading == 0; }
+
+start{ return current.mapName == "01_01_plane_wreckage.hpm" && current.loading != 0 && old.loading == 0; }
+
+//reset{ return old.mapName != current.mapName && current.mapName == "01_01_plane_wreckage.hpm"; }
 
 split
 {
