@@ -40,7 +40,6 @@ state("AmnesiaRebirth_NoSteam","NoSteam 1.01/1.10")
 	string32 mapNameL	: 0x0094F938, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094F938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
-
 // DRM-free
 state("AmnesiaRebirth","GOG 1.10/1.11")
 {
@@ -117,7 +116,7 @@ startup{ settings.Add("fullSplit",true,"Split on level changes (If disabled, wil
 
 update{ current.mapName = current.mapNameS != null && current.mapNameS.EndsWith(".hpm") ? current.mapNameS : current.mapNameL; }
 
-isLoading{ return current.loading == 0; }
+isLoading{ return version != "Unknown" && current.loading == 0; }
 
 start{ return current.mapName == "01_01_plane_wreckage.hpm" && current.loading > old.loading; }
 
