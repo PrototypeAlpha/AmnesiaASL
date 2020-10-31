@@ -24,6 +24,8 @@ state("AmnesiaRebirth","Steam 1.01/1.10")
 	string32 mapNameS	: 0x009DED08, 0x1F8;
 	string32 mapNameL	: 0x009DED08, 0x1F8, 0x0;
 	byte	 parisWall	: 0x009DED08, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	byte	 ghoulLvl	: 0x009DED08, 0x130, 0x2C0, 0x288, 0x90, 0x50;
+	string80 audio		: 0x009E4D10, 0x1E8, 0x4C8, 0x10, 0x10, 0x0;
 }
 state("AmnesiaRebirth","Steam 1.32/1.04")
 {
@@ -31,6 +33,8 @@ state("AmnesiaRebirth","Steam 1.32/1.04")
 	string32 mapNameS	: 0x009DCBC8, 0x1F8;
 	string32 mapNameL	: 0x009DCBC8, 0x1F8, 0x0;
 	byte	 parisWall	: 0x009DCBC8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	byte	 ghoulLvl	: 0x009DCBC8, 0x130, 0x2C0, 0x288, 0x90, 0x50;
+	string80 audio		: 0x009E4D10, 0x1E8, 0x4C8, 0x10, 0x10, 0x0;
 }
 // NoSteam
 state("AmnesiaRebirth_NoSteam","NoSteam 1.01/1.10")
@@ -39,6 +43,8 @@ state("AmnesiaRebirth_NoSteam","NoSteam 1.01/1.10")
 	string32 mapNameS	: 0x0094F938, 0x1F8;
 	string32 mapNameL	: 0x0094F938, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094F938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	byte	 ghoulLvl	: 0x0094F938, 0x130, 0x2C0, 0x288, 0x90, 0x50;
+	string80 audio		: 0x00951380, 0x1E8, 0xA8, 0x10, 0x10, 0x0;
 }
 // DRM-free
 state("AmnesiaRebirth","GOG 1.10/1.11")
@@ -47,6 +53,8 @@ state("AmnesiaRebirth","GOG 1.10/1.11")
 	string32 mapNameS	: 0x0094F938, 0x1F8;
 	string32 mapNameL	: 0x0094F938, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094F938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	byte	 ghoulLvl	: 0x0094F938, 0x130, 0x2C0, 0x288, 0x90, 0x50;
+	string80 audio		: 0x00951380, 0x1E8, 0xA8, 0x10, 0x10, 0x0;
 }
 state("AmnesiaRebirth","GOG 1.06")
 {
@@ -54,6 +62,8 @@ state("AmnesiaRebirth","GOG 1.06")
 	string32 mapNameS	: 0x0094E7E8, 0x1F8;
 	string32 mapNameL	: 0x0094E7E8, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094E7E8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	byte	 ghoulLvl	: 0x0094E7E8, 0x130, 0x2C0, 0x288, 0x90, 0x50;
+	string80 audio		: 0x00951380, 0x1E8, 0xA8, 0x10, 0x10, 0x0;
 }
 state("AmnesiaRebirth","GOG 1.04")
 {
@@ -61,11 +71,15 @@ state("AmnesiaRebirth","GOG 1.04")
 	string32 mapNameS	: 0x009507E8, 0x1F8;
 	string32 mapNameL	: 0x009507E8, 0x1F8, 0x0;
 	byte	 parisWall	: 0x009507E8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	byte	 ghoulLvl	: 0x009507E8, 0x130, 0x2C0, 0x288, 0x90, 0x50;
+	string80 audio		: 0x00951380, 0x1E8, 0xA8, 0x10, 0x10, 0x0;
 }
 
 init
 {
 	vars.aslName = "AmnesiaASL Rebirth";
+	vars.ghoulEnding = false;
+	
 	var module	 = modules.First();
 	var name	 = module.ModuleName;
 	var size	 = module.ModuleMemorySize;
@@ -110,6 +124,7 @@ init
 	print("["+vars.aslName+"] md5 = "+hash);
 	print("["+vars.aslName+"] version = "+version);
 	
+	current.mapName = current.mapNameS != null && current.mapNameS.EndsWith(".hpm") ? current.mapNameS : current.mapNameL;
 }
 
 startup{ settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)"); }
@@ -118,14 +133,25 @@ update{ current.mapName = current.mapNameS != null && current.mapNameS.EndsWith(
 
 isLoading{ return version != "Unknown" && current.loading == 0; }
 
-start{ return current.mapName == "01_01_plane_wreckage.hpm" && current.loading > old.loading; }
+start{ return current.audio == "01_01_plane_wreckage/memory_dialogue_prewakeup_001_player_001.ogg" && old.audio != current.audio; } 
 
 //reset{ return old.mapName != current.mapName && current.mapName == "01_01_plane_wreckage.hpm"; }
 
 split
 {
-	// Paris ending, splits on final stage of wall breaking
-	if(old.mapName == current.mapName && current.mapName == "04_04_paris.hpm") return current.parisWall == 3 && old.parisWall == 2;
+	if(old.mapName == current.mapName)
+	{
+		// Paris ending, splits when Tasi falls through the broken wall
+		if(current.mapName == "04_04_paris.hpm" && current.audio != null)
+			return current.audio.StartsWith("A2_4_5") && old.audio != current.audio;
+		
+		if(current.mapName == "04_03_undercity_b.hpm"){
+			// Sabotage ending, splits on "No.." dialogue
+			if(current.audio != null && current.audio.Contains("DestroyVitae_003")) return old.audio != current.audio;
+			// Ghoul ending, splits when Tasi looks at hands after the struggle
+			else return current.ghoulLvl == 20 && old.ghoulLvl < 20;
+		}
+	}
 	// Level changes, excluding loading to/from main menu
 	return settings["fullSplit"] && old.mapName != current.mapName && old.mapName != "main_menu.hpm" && current.mapName != "main_menu.hpm";
 }
