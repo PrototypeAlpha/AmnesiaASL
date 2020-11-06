@@ -87,11 +87,9 @@ init
 		case "0A61A4B88CEF7945B52A93980DEF0E74": version = "Steam 1.01/1.10";	break;
 		case "A184A26F27A960E7A210BF4B308E83E9": version = "Steam 1.32/1.04";	break;
 		case "BF15BF71C2F6780878C0D6370302E6AE": version = "Steam 1.31/1.03";	break;
-		// NoSteam
-		case "8849E1D792FA56E629230A79603D1717": version = "NoSteam 1.02/1.20"; break;
-		case "AFEFC36F4EBEB560B684D7B441B69EDE": version = "NoSteam 1.01/1.10"; break;
 		// DRM-free
-		case "8849E1D792FA56E629230A79603D1717": version = "GOG 1.20";			break;
+		case "8849E1D792FA56E629230A79603D1717": version = name == "AmnesiaRebirth.exe" ? "GOG 1.20" : "NoSteam 1.02/1.20";	break;
+		case "AFEFC36F4EBEB560B684D7B441B69EDE": version = "NoSteam 1.01/1.10"; break;
 		case "F6AF6853CB4C5C7D73B5B80E35A0793E": version = "GOG 1.10/1.11";		break;
 		case "99409759B72E9A4B3D3E4131DF837758": version = "GOG 1.06";			break;
 		case "92BAA3E8DCA3D09B1457A9AABFC2906F": version = "GOG 1.04";			break;
