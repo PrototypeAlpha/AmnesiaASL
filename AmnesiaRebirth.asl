@@ -41,7 +41,7 @@ state("AmnesiaRebirth_NoSteam","NoSteam 1.02/1.20")
 	byte	 parisWall	: 0x0094F938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
 // DRM-free
-state("AmnesiaRebirth","GOG 1.10/1.11")
+state("AmnesiaRebirth","GOG 1.20")
 {
 	int 	 loading	: 0x00955968, 0x130;
 	string32 mapNameS	: 0x0094F938, 0x1F8;
@@ -91,11 +91,12 @@ init
 		case "8849E1D792FA56E629230A79603D1717": version = "NoSteam 1.02/1.20"; break;
 		case "AFEFC36F4EBEB560B684D7B441B69EDE": version = "NoSteam 1.01/1.10"; break;
 		// DRM-free
+		case "8849E1D792FA56E629230A79603D1717": version = "GOG 1.20";			break;
 		case "F6AF6853CB4C5C7D73B5B80E35A0793E": version = "GOG 1.10/1.11";		break;
 		case "99409759B72E9A4B3D3E4131DF837758": version = "GOG 1.06";			break;
 		case "92BAA3E8DCA3D09B1457A9AABFC2906F": version = "GOG 1.04";			break;
 		default:
-			var gameMessageText = "Website/launcher you bought the game from\r\n"+name+","+size+","+hash;
+			var gameMessageText = "Website/launcher you bought the game from:\r\n"+name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
 				"It appears you're running an unknown version of the game.\n\n"+
 				"Please @PrototypeAlpha#7561 on the HPL Games Speedrunning discord with "+
