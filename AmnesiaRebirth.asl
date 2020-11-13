@@ -18,7 +18,7 @@
 // Note: I suspect you can find the first two offsets for the parisWall here too (168 and 80 at the time of this note)
 
 // Steam
-state("AmnesiaRebirth","Steam 1.02/1.20")
+state("AmnesiaRebirth","Steam 1.21")
 {
 	int 	 loading	: 0x009E4D38, 0x130;
 	string32 mapNameS	: 0x009DED08, 0x1F8;
@@ -32,30 +32,32 @@ state("AmnesiaRebirth","Steam 1.32/1.04")
 	string32 mapNameL	: 0x009DCBC8, 0x1F8, 0x0;
 	byte	 parisWall	: 0x009DCBC8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
+
 // NoSteam
-state("AmnesiaRebirth_NoSteam","NoSteam 1.02/1.20")
+state("AmnesiaRebirth_NoSteam","NoSteam 1.21")
 {
 	int 	 loading	: 0x00955968, 0x130;
 	string32 mapNameS	: 0x0094F938, 0x1F8;
 	string32 mapNameL	: 0x0094F938, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094F938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
+
 // DRM-free
-state("AmnesiaRebirth","GOG 1.20")
+state("AmnesiaRebirth","DRM-free 1.21")
 {
 	int 	 loading	: 0x00955968, 0x130;
 	string32 mapNameS	: 0x0094F938, 0x1F8;
 	string32 mapNameL	: 0x0094F938, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094F938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
-state("AmnesiaRebirth","GOG 1.06")
+state("AmnesiaRebirth","DRM-free 1.06")
 {
 	int 	 loading	: 0x00954818, 0x130;
 	string32 mapNameS	: 0x0094E7E8, 0x1F8;
 	string32 mapNameL	: 0x0094E7E8, 0x1F8, 0x0;
 	byte	 parisWall	: 0x0094E7E8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
-state("AmnesiaRebirth","GOG 1.04")
+state("AmnesiaRebirth","DRM-free 1.04")
 {
 	int 	 loading	: 0x00956818, 0x130;
 	string32 mapNameS	: 0x009507E8, 0x1F8;
@@ -83,16 +85,19 @@ init
 	switch(hash)
 	{
 		// Steam
-		case "93A53FB004E1B9C1B88F738FCB47DD22": version = "Steam 1.02/1.20";	break;
-		case "0A61A4B88CEF7945B52A93980DEF0E74": version = "Steam 1.01/1.10";	break;
-		case "A184A26F27A960E7A210BF4B308E83E9": version = "Steam 1.32/1.04";	break;
-		case "BF15BF71C2F6780878C0D6370302E6AE": version = "Steam 1.31/1.03";	break;
+		case "22F100279E1FA34CD69D4CCCBE59755C": version = "Steam 1.21";															break;
+		case "93A53FB004E1B9C1B88F738FCB47DD22": version = "Steam 1.02/1.20";														break;
+		case "0A61A4B88CEF7945B52A93980DEF0E74": version = "Steam 1.01/1.10";														break;
+		case "A184A26F27A960E7A210BF4B308E83E9": version = "Steam 1.32/1.04";														break;
+		case "BF15BF71C2F6780878C0D6370302E6AE": version = "Steam 1.31/1.03";														break;
 		// DRM-free
-		case "8849E1D792FA56E629230A79603D1717": version = name == "AmnesiaRebirth.exe" ? "GOG 1.20" : "NoSteam 1.02/1.20";	break;
-		case "AFEFC36F4EBEB560B684D7B441B69EDE": version = "NoSteam 1.01/1.10"; break;
-		case "F6AF6853CB4C5C7D73B5B80E35A0793E": version = "GOG 1.10/1.11";		break;
-		case "99409759B72E9A4B3D3E4131DF837758": version = "GOG 1.06";			break;
-		case "92BAA3E8DCA3D09B1457A9AABFC2906F": version = "GOG 1.04";			break;
+		case "8045F461648FBF756BC63AE00223536A": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.21" : "NoSteam 1.21";			break;
+		case "8849E1D792FA56E629230A79603D1717": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.20" : "NoSteam 1.02/1.20";	break;
+		
+		case "AFEFC36F4EBEB560B684D7B441B69EDE": version = "NoSteam 1.01/1.10";														break;
+		case "F6AF6853CB4C5C7D73B5B80E35A0793E": version = "DRM-free 1.10/1.11";													break;
+		case "99409759B72E9A4B3D3E4131DF837758": version = "DRM-free 1.06";															break;
+		case "92BAA3E8DCA3D09B1457A9AABFC2906F": version = "DRM-free 1.04";															break;
 		default:
 			var gameMessageText = "Website/launcher you bought the game from:\r\n"+name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
