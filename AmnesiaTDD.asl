@@ -5,7 +5,7 @@ state("Amnesia","1.50")
 	
 	string32	audio		: 0x7131A8, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
 	string15	audio2		: 0x7131A8, 0x48, 0x38, 0x04, 0x08, 0x04;
-	string24	map			: 0x6FA874, 0x5C, 0x60, 0x38;
+	string24	map 		: 0x6FA874, 0x5C, 0x60, 0x38;
 	bool 	 	pActive		: 0x6FA874, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FA874, 0x84, 0xD4;
 	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
@@ -18,7 +18,7 @@ state("Amnesia_NoSteam","NoSteam 1.50")
 	
 	string32 	audio		: 0x7131A8, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
 	string15	audio2		: 0x7131A8, 0x48, 0x38, 0x04, 0x08, 0x04;
-	string24 	map			: 0x6FA874, 0x5C, 0x60, 0x38;
+	string24 	map 		: 0x6FA874, 0x5C, 0x60, 0x38;
 	bool 	 	pActive		: 0x6FA874, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FA874, 0x84, 0xD4;
 	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
@@ -31,10 +31,23 @@ state("Amnesia","Steam 1.50")
 	
 	string32 	audio		: 0x781308, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
 	string15	audio2		: 0x781308, 0x48, 0x38, 0x04, 0x08, 0x04;
-	string24 	map			: 0x768C54, 0x5C, 0x60, 0x38;
+	string24 	map 		: 0x768C54, 0x5C, 0x60, 0x38;
 	bool 	 	pActive		: 0x768C54, 0x84, 0x58;
 	float 	 	pMSMul		: 0x768C54, 0x84, 0xD4;
 	float		pPosX		: 0x768C54, 0x84, 0x54, 0x48;
+}
+
+state("Amnesia","Streamnesia 2.1")
+{
+	byte 	 	loading1	: 0x714EB0, 0x84, 0x7C, 0x04;
+	byte 	 	loading2	: 0x714EB0, 0x84, 0x7C;
+	
+	string32	audio		: 0x714E98, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
+	string15	audio2		: 0x714E98, 0x48, 0x38, 0x04, 0x08, 0x04;
+	string24	map 		: 0x6FC964, 0x5C, 0x60, 0x38;
+	bool 	 	pActive		: 0x6FC964, 0x84, 0x58;
+	float 	 	pMSMul		: 0x6FC964, 0x84, 0xD4;
+	float		pPosX		: 0x6FC964, 0x84, 0x54, 0x48;
 }
 
 startup
@@ -95,9 +108,12 @@ startup
 		return proc.WriteBytes(src, newBytes.ToArray());
 	});
 	
-	vars.sigGametime = new SigScanTarget(0, "8B 4E 68 C6 45 D3 01");			// AOB signature for Gametime. Use the address at 8B
-	vars.sigMapload  = new SigScanTarget(3, "89 45 ?? A1 ?? ?? ?? ?? 8B 88");	// AOB signature for Mapload. Use the address at A1
-	vars.sigMenuload = new SigScanTarget(0, "8B ?? 70 8B ?? 30 6?");			// AOB signature for Menu. Use the address at 8B
+	// AOB signature for Gametime. Use the address at 8B
+	vars.sigGametime = new SigScanTarget(0, "8B 4E 68 C6 45 D3 01");
+	// AOB signature for Mapload. Use the address at A1
+	vars.sigMapload  = new SigScanTarget(3, "89 45 ?? A1 ?? ?? ?? ?? 8B 88");
+	// AOB signature for Menu. Use the address at 8B
+	vars.sigMenuload = new SigScanTarget(0, "8B ?? 70 8B ?? 30 6?");
 }
 
 shutdown
@@ -138,6 +154,9 @@ init
 	
 	switch(size)
 	{
+		case 7884800:
+			version = "Streamnesia 2.1";
+			break;
 		case 7872512:
 			version = name == "amnesia.exe" ? "DRM-free 1.50" : "NoSteam 1.50";
 			break;
@@ -163,11 +182,11 @@ init
 	var scanner = new SignatureScanner(game, baseAddr, size);
 	
 	// Scan memory for Gametime signature
-	IntPtr staticGametime	=	vars.ptrGametime	=	scanner.Scan((SigScanTarget) vars.sigGametime);
+	IntPtr staticGametime =	vars.ptrGametime = scanner.Scan((SigScanTarget) vars.sigGametime);
 	// Scan memory for Mapload signature
-	IntPtr staticMapload	=	vars.ptrMapload		=	scanner.Scan((SigScanTarget) vars.sigMapload);
+	IntPtr staticMapload  =	vars.ptrMapload  = scanner.Scan((SigScanTarget) vars.sigMapload);
 	// Scan memory for Menuload signature
-	IntPtr staticMenuload	=	vars.ptrMenuload	=	scanner.Scan((SigScanTarget) vars.sigMenuload);
+	IntPtr staticMenuload =	vars.ptrMenuload = scanner.Scan((SigScanTarget) vars.sigMenuload);
 	
 	// Allocate memory for our code instead of looking for a code cave
 	vars.log("DEBUG","Allocating memory...");
@@ -180,7 +199,7 @@ init
 		vars.log("ERROR","Can't find signatures. Unknown game version?");
 		game.FreeMemory((IntPtr) aslMem);
 		MessageBox.Show(
-			"Can't find signatures.\n"+
+			"Error: Can't find signatures.\n"+
 			"\nstaticGametime = "+staticGametime+
 			"\nstaticMapload = "+staticMapload+
 			"\nstaticMenuload = "+staticMenuload,
@@ -201,30 +220,30 @@ init
 		vars.log("DEBUG","Original bytes at Gametime address: "+BitConverter.ToString(game.ReadBytes(staticGametime, 7)).Replace("-"," "));
 		
 		IntPtr codeGametime = aslMem+1;
-		vars.WriteMov(game, codeGametime, 7, aslMem, new byte[] {0});	// Write instruction to set isLoading to 0
-		vars.CopyMemory(game, staticGametime, 7, codeGametime+7);		// Write original code
-		game.WriteJumpInstruction(codeGametime+7+7, staticGametime+7);	// Write jump out
-		game.WriteJumpInstruction(staticGametime, codeGametime);		// Write jump in
+		vars.WriteMov(game, codeGametime, 7, aslMem, new byte[] {0}); // Write instruction to set isLoading to 0
+		vars.CopyMemory(game, staticGametime, 7, codeGametime+7); // Write original code
+		game.WriteJumpInstruction(codeGametime+7+7, staticGametime+7); // Write jump out
+		game.WriteJumpInstruction(staticGametime, codeGametime); // Write jump in
 		
 		var addrMapload = BitConverter.GetBytes((int) staticMapload).Reverse().ToArray();
 		vars.log("DEBUG","staticMapload address: "+BitConverter.ToString(addrMapload).Replace("-",""));
 		vars.log("DEBUG","Original bytes at staticMapload address: "+BitConverter.ToString(game.ReadBytes(staticMapload, 5)).Replace("-"," "));
 		
 		IntPtr codeMapload = codeGametime+7+7+5;
-		vars.WriteMov(game, codeMapload, 7, aslMem, new byte[] {1});	// Write instruction to set isLoading to 1
-		vars.CopyMemory(game, staticMapload, 5, codeMapload+7);			// Write original code
-		game.WriteJumpInstruction(codeMapload+7+5, staticMapload+5);	// Write jump out
-		game.WriteJumpInstruction(staticMapload, codeMapload);			// Write jump in
+		vars.WriteMov(game, codeMapload, 7, aslMem, new byte[] {1}); // Write instruction to set isLoading to 1
+		vars.CopyMemory(game, staticMapload, 5, codeMapload+7); // Write original code
+		game.WriteJumpInstruction(codeMapload+7+5, staticMapload+5); // Write jump out
+		game.WriteJumpInstruction(staticMapload, codeMapload); // Write jump in
 		
 		var addrMenuload = BitConverter.GetBytes((int) staticMenuload).Reverse().ToArray();
 		vars.log("DEBUG","Menu address: "+BitConverter.ToString(addrMenuload).Replace("-",""));
 		vars.log("DEBUG","Original bytes at Menu address: "+BitConverter.ToString(game.ReadBytes(staticMenuload, 6)).Replace("-"," "));
 		
 		IntPtr codeMenuload = codeMapload+7+5+5;
-		vars.WriteMov(game, codeMenuload, 6, aslMem, new byte[] {1});	// Write instruction to set isLoading to 1
-		vars.CopyMemory(game, staticMenuload, 6, codeMenuload+7);		// Write original code
-		game.WriteJumpInstruction(codeMenuload+7+6, staticMenuload+6);	// Write jump out
-		game.WriteJumpInstruction(staticMenuload, codeMenuload);		// Write jump in
+		vars.WriteMov(game, codeMenuload, 6, aslMem, new byte[] {1}); // Write instruction to set isLoading to 1
+		vars.CopyMemory(game, staticMenuload, 6, codeMenuload+7); // Write original code
+		game.WriteJumpInstruction(codeMenuload+7+6, staticMenuload+6); // Write jump out
+		game.WriteJumpInstruction(staticMenuload, codeMenuload); // Write jump in
 		
 		vars.injected = true;
 		
@@ -276,8 +295,8 @@ split
 		// TDD run end
 		if(current.map == "OrbChamber" && old.audio != current.audio)
 			return current.audio == "CH03L29_Alexander_Interrupt03_01"|| // TDD Daniel ending
-				   current.audio == "CH03L29_Ending_Alexander_01"	  || // TDD Alexander ending
-				   current.audio == "CH03L29_Alexander_AgrippaEnd_01";	 // TDD Agrippa ending
+				   current.audio == "CH03L29_Ending_Alexander_01"|| // TDD Alexander ending
+				   current.audio == "CH03L29_Alexander_AgrippaEnd_01"; // TDD Agrippa ending
 		// Justine run end
 		if(current.map == "L04Final"){
 			if(current.pActive && current.pPosX > 37.62f)
