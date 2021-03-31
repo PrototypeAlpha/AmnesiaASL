@@ -1,3 +1,7 @@
+// Alternative update method:
+// Increase the previous version's base offsets in increments of 2000 until you find a working base address
+// If no results after a while, then follow the instructions below
+
 // Updating: 
 // 1) Open binary in Ghidra
 // 2) Analyze the binary (Can skip if you want to do math.. but I am lazy)
@@ -8,16 +12,23 @@
 // 7) Rip out updated base offset
 
 // loading: 
-//	First function that used the address was the one I chose
-//	AOB: 40 53 48 83 ec 20 8b d1 48 8b 0d a9 bd 31 00
-//	Last instruction, pointer in the MOV
+// First function that used the address was the one I chose
+// AOB: 40 53 48 83 ec 20 8b d1 48 8b 0d a9 bd 31 00
+// Last instruction, pointer in the MOV
 
-// mapName/parisWall
+// mapName/parisWall:
 // AOB: 48 8b 05 31 ae 98 00 48 8b 90 68 01 00 00 48 8b 82 80 00 00 00 48 85 c0 74 27 80 b8 0c 03 00 00 00
 // First instruction, pointer in the MOV
 // Note: I suspect you can find the first two offsets for the parisWall here too (168 and 80 at the time of this note)
 
 // Steam
+state("AmnesiaRebirth","Steam 1.30")
+{
+	int 	 loading	: 0x009EAD58, 0x130;
+	string32 mapNameS	: 0x009E4D08, 0x1F8;
+	string32 mapNameL	: 0x009E4D08, 0x1F8, 0x0;
+	byte	 parisWall	: 0x009E4D08, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+}
 state("AmnesiaRebirth","Steam 1.23")
 {
 	int 	 loading	: 0x009E6D58, 0x130;
@@ -41,6 +52,20 @@ state("AmnesiaRebirth","Steam 1.32/1.04")
 }
 
 // NoSteam
+state("AmnesiaRebirth_NoSteam","Steam 1.30")
+{
+	int 	 loading	: 0x009EAD58, 0x130;
+	string32 mapNameS	: 0x009E4D08, 0x1F8;
+	string32 mapNameL	: 0x009E4D08, 0x1F8, 0x0;
+	byte	 parisWall	: 0x009E4D08, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+}
+state("AmnesiaRebirth_NoSteam","NoSteam 1.30")
+{
+	int 	 loading	: 0x009B9988, 0x130;
+	string32 mapNameS	: 0x00955938, 0x1F8;
+	string32 mapNameL	: 0x00955938, 0x1F8, 0x0;
+	byte	 parisWall	: 0x00955938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+}
 state("AmnesiaRebirth_NoSteam","NoSteam 1.23")
 {
 	int 	 loading	: 0x00957988, 0x130;
@@ -57,6 +82,13 @@ state("AmnesiaRebirth_NoSteam","NoSteam 1.22")
 }
 
 // DRM-free
+state("AmnesiaRebirth","DRM-free 1.30")
+{
+	int 	 loading	: 0x0095B988, 0x130;
+	string32 mapNameS	: 0x00955938, 0x1F8;
+	string32 mapNameL	: 0x00955938, 0x1F8, 0x0;
+	byte	 parisWall	: 0x00955938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+}
 state("AmnesiaRebirth","DRM-free 1.23")
 {
 	int 	 loading	: 0x00957988, 0x130;
@@ -86,9 +118,25 @@ state("AmnesiaRebirth","DRM-free 1.04")
 	byte	 parisWall	: 0x009507E8, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
 
-init
+startup
 {
 	vars.aslName = "AmnesiaASL Rebirth";
+	if(timer.CurrentTimingMethod == TimingMethod.RealTime){
+		
+		var timingMessage = MessageBox.Show(
+			"This game uses Game Time (time without loads) as the main timing method.\n"+
+			"LiveSplit is currently set to show Real Time (time INCLUDING loads).\n"+
+			"Would you like the timing method to be set to Game Time for you?",
+			vars.aslName+" | LiveSplit",
+			MessageBoxButtons.YesNo,MessageBoxIcon.Question
+		);
+		if (timingMessage == DialogResult.Yes) timer.CurrentTimingMethod = TimingMethod.GameTime;
+	}
+	settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)");
+}
+
+init
+{
 	var module	 = modules.First();
 	var name	 = module.ModuleName;
 	var size	 = module.ModuleMemorySize;
@@ -106,6 +154,7 @@ init
 	switch(hash)
 	{
 		// Steam
+		case "B250AE6785BFE73624B9C2437BAE7330": version = "Steam 1.30";															break;
 		case "12412704AD2AB24E934B834DBDA4919A": version = "Steam 1.23";															break;
 		case "94A270F2C8BDC42F05B9E95C86C979E8": version = "Steam 1.22";															break;
 		case "22F100279E1FA34CD69D4CCCBE59755C": version = "Steam 1.21";															break;
@@ -124,7 +173,7 @@ init
 		case "99409759B72E9A4B3D3E4131DF837758": version = "DRM-free 1.06";															break;
 		case "92BAA3E8DCA3D09B1457A9AABFC2906F": version = "DRM-free 1.04";															break;
 		default:
-			var gameMessageText = "Website/launcher you bought the game from:\r\n"+name+","+size+","+hash;
+			var gameMessageText = name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
 				"It appears you're running an unknown version of the game.\n\n"+
 				"Please @PrototypeAlpha#7561 on the HPL Games Speedrunning discord with "+
@@ -134,7 +183,8 @@ init
 				MessageBoxButtons.OKCancel,MessageBoxIcon.Warning
 			);
 			if (gameMessage == DialogResult.OK) Clipboard.SetText(gameMessageText);
-			version = "Unknown"; break;
+			version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.30" : "Unknown";	 break;
+			//version = "Unknown"; break;
 	}
 	print("["+vars.aslName+"] name = "+name);
 	print("["+vars.aslName+"] size = "+size);
@@ -142,8 +192,6 @@ init
 	print("["+vars.aslName+"] version = "+version);
 	
 }
-
-startup{ settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)"); }
 
 update{ current.mapName = current.mapNameS != null && current.mapNameS.EndsWith(".hpm") ? current.mapNameS : current.mapNameL; }
 
