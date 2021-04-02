@@ -1,6 +1,7 @@
 // Alternative update method:
-// Increase the previous version's base offsets in increments of 2000 until you find a working base address
-// If no results after a while, then follow the instructions below
+// Increase or decrease the previous version's base offsets in increments of 1000 until you find a working base address
+// (Also try increments of 20 if you don't find anything within +E000)
+// If all else fails, then follow the instructions below
 
 // Updating: 
 // 1) Open binary in Ghidra
@@ -52,19 +53,12 @@ state("AmnesiaRebirth","Steam 1.32/1.04")
 }
 
 // NoSteam
-state("AmnesiaRebirth_NoSteam","Steam 1.30")
-{
-	int 	 loading	: 0x009EAD58, 0x130;
-	string32 mapNameS	: 0x009E4D08, 0x1F8;
-	string32 mapNameL	: 0x009E4D08, 0x1F8, 0x0;
-	byte	 parisWall	: 0x009E4D08, 0x168, 0x80, 0xC8, 0x90, 0x2C;
-}
 state("AmnesiaRebirth_NoSteam","NoSteam 1.30")
 {
-	int 	 loading	: 0x009B9988, 0x130;
-	string32 mapNameS	: 0x00955938, 0x1F8;
-	string32 mapNameL	: 0x00955938, 0x1F8, 0x0;
-	byte	 parisWall	: 0x00955938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	int 	 loading	: 0x0095A988, 0x130;
+	string32 mapNameS	: 0x00954938, 0x1F8;
+	string32 mapNameL	: 0x00954938, 0x1F8, 0x0;
+	byte	 parisWall	: 0x00954938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
 state("AmnesiaRebirth_NoSteam","NoSteam 1.23")
 {
@@ -84,10 +78,10 @@ state("AmnesiaRebirth_NoSteam","NoSteam 1.22")
 // DRM-free
 state("AmnesiaRebirth","DRM-free 1.30")
 {
-	int 	 loading	: 0x0095B988, 0x130;
-	string32 mapNameS	: 0x00955938, 0x1F8;
-	string32 mapNameL	: 0x00955938, 0x1F8, 0x0;
-	byte	 parisWall	: 0x00955938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+	int 	 loading	: 0x0095A988, 0x130;
+	string32 mapNameS	: 0x00954938, 0x1F8;
+	string32 mapNameL	: 0x00954938, 0x1F8, 0x0;
+	byte	 parisWall	: 0x00954938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
 }
 state("AmnesiaRebirth","DRM-free 1.23")
 {
@@ -163,6 +157,7 @@ init
 		case "A184A26F27A960E7A210BF4B308E83E9": version = "Steam 1.32/1.04";														break;
 		case "BF15BF71C2F6780878C0D6370302E6AE": version = "Steam 1.31/1.03";														break;
 		// DRM-free
+		case "79249DBA396764B4716C3B14E71CD524": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.30" : "NoSteam 1.30";			break;
 		case "ADFA03BB715ECD2C7A5BE71E8C2D2984": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.23" : "NoSteam 1.23";			break;
 		case "FD5B1F596261E7761FCBE07DFFC8E22F": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.22" : "NoSteam 1.22";			break;
 		case "8045F461648FBF756BC63AE00223536A": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.21" : "NoSteam 1.21";			break;
@@ -183,8 +178,7 @@ init
 				MessageBoxButtons.OKCancel,MessageBoxIcon.Warning
 			);
 			if (gameMessage == DialogResult.OK) Clipboard.SetText(gameMessageText);
-			version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.30" : "Unknown";	 break;
-			//version = "Unknown"; break;
+			version = "Unknown"; break;
 	}
 	print("["+vars.aslName+"] name = "+name);
 	print("["+vars.aslName+"] size = "+size);
