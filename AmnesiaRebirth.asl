@@ -23,7 +23,7 @@
 // Note: I suspect you can find the first two offsets for the parisWall here too (168 and 80 at the time of this note)
 
 // Steam
-state("AmnesiaRebirth","Steam 1.30")
+state("AmnesiaRebirth","Steam 1.31")
 {
 	int 	 loading	: 0x009EAD58, 0x130;
 	string32 mapNameS	: 0x009E4D08, 0x1F8;
@@ -53,6 +53,13 @@ state("AmnesiaRebirth","Steam 1.32/1.04")
 }
 
 // NoSteam
+state("AmnesiaRebirth_NoSteam","NoSteam 1.31")
+{
+	int 	 loading	: 0x0095B988, 0x130;
+	string32 mapNameS	: 0x00955938, 0x1F8;
+	string32 mapNameL	: 0x00955938, 0x1F8, 0x0;
+	byte	 parisWall	: 0x00955938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+}
 state("AmnesiaRebirth_NoSteam","NoSteam 1.30")
 {
 	int 	 loading	: 0x0095A988, 0x130;
@@ -76,6 +83,13 @@ state("AmnesiaRebirth_NoSteam","NoSteam 1.22")
 }
 
 // DRM-free
+state("AmnesiaRebirth","DRM-free 1.31")
+{
+	int 	 loading	: 0x0095B988, 0x130;
+	string32 mapNameS	: 0x00955938, 0x1F8;
+	string32 mapNameL	: 0x00955938, 0x1F8, 0x0;
+	byte	 parisWall	: 0x00955938, 0x168, 0x80, 0xC8, 0x90, 0x2C;
+}
 state("AmnesiaRebirth","DRM-free 1.30")
 {
 	int 	 loading	: 0x0095A988, 0x130;
@@ -148,6 +162,7 @@ init
 	switch(hash)
 	{
 		// Steam
+		case "7EA8456BACBBACDB00F4B3B813C17C1F": version = "Steam 1.31";															break;
 		case "B250AE6785BFE73624B9C2437BAE7330": version = "Steam 1.30";															break;
 		case "12412704AD2AB24E934B834DBDA4919A": version = "Steam 1.23";															break;
 		case "94A270F2C8BDC42F05B9E95C86C979E8": version = "Steam 1.22";															break;
@@ -157,6 +172,7 @@ init
 		case "A184A26F27A960E7A210BF4B308E83E9": version = "Steam 1.32/1.04";														break;
 		case "BF15BF71C2F6780878C0D6370302E6AE": version = "Steam 1.31/1.03";														break;
 		// DRM-free
+		case "739D0189FF71C851B8251F9D043686A3": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.31" : "NoSteam 1.31";			break;
 		case "79249DBA396764B4716C3B14E71CD524": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.30" : "NoSteam 1.30";			break;
 		case "ADFA03BB715ECD2C7A5BE71E8C2D2984": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.23" : "NoSteam 1.23";			break;
 		case "FD5B1F596261E7761FCBE07DFFC8E22F": version = name == "AmnesiaRebirth.exe" ? "DRM-free 1.22" : "NoSteam 1.22";			break;
