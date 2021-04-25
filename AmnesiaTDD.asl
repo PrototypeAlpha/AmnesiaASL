@@ -200,9 +200,10 @@ init
 		game.FreeMemory((IntPtr) aslMem);
 		MessageBox.Show(
 			"Error: Can't find signatures.\n"+
-			"\nstaticGametime = "+staticGametime+
-			"\nstaticMapload = "+staticMapload+
-			"\nstaticMenuload = "+staticMenuload,
+			"\n staticGametime = "+staticGametime+
+			"\n staticMapload = "+staticMapload+
+			"\n staticMenuload = "+staticMenuload+
+			"\n\nTry restarting the game.",
 			vars.aslName+" | LiveSplit",
 			MessageBoxButtons.OK,MessageBoxIcon.Error
 		);
