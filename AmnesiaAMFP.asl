@@ -1,37 +1,67 @@
 state("aamfp","Steam 1.01")
 {
+	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
+	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
+	
 	string9 map			 : 0x74EA04, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74EA04, 0x84, 0x58;
+	float 	pMoveSpeedMul: 0x74EA04, 0x84, 0xDC;
+	float 	loadingFade	 : 0x74EA04, 0xAC, 0x164;
 }
 
 state("aamfp","NoDRM 1.01")
 {
+	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
+	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
+	
 	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74CA04, 0x84, 0x58;
+	float 	pMoveSpeedMul: 0x74CA04, 0x84, 0xDC;
+	float 	loadingFade	 : 0x74CA04, 0xAC, 0x164;
 }
 
-state("aamfp_nosteam","NoSteam 1.01")
+state("aamfp_NoSteam","NoSteam 1.01")
 {
+	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
+	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
+	
 	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74CA04, 0x84, 0x58;
+	float 	pMoveSpeedMul: 0x74CA04, 0x84, 0xDC;
+	float 	loadingFade	 : 0x74CA04, 0xAC, 0x164;
 }
 
 state("aamfp","NoDRM 1.03")
 {
+	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
+	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
+	
 	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74FB84, 0x84, 0x58;
+	float 	pMoveSpeedMul: 0x74FB84, 0x84, 0xDC;
+	float 	loadingFade	 : 0x74FB84, 0xAC, 0x164;
 }
 
 state("aamfp_NoSteam","NoSteam 1.03")
 {
+	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
+	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
+	
 	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74FB84, 0x84, 0x58;
+	float 	pMoveSpeedMul: 0x74FB84, 0x84, 0xDC;
+	float 	loadingFade	 : 0x74FB84, 0xAC, 0x164;
 }
 
 state("aamfp","Steam 1.03")
 {
+	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x4;
+	byte 	loading2	 : 0x76984C, 0x38, 0x7C;
+	
 	string9 map			 : 0x754CD4, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x754CD4, 0x84, 0x58;
+	float 	pMoveSpeedMul: 0x754CD4, 0x84, 0xDC;
+	float 	loadingFade	 : 0x754CD4, 0xAC, 0x164;
 }
 
 startup{
@@ -244,18 +274,26 @@ init
 	vars.isLoading = new MemoryWatcher<bool>(aslMem);
 }
 
-isLoading{ return vars.isLoading.Current; }
+isLoading{ return vars.isLoading.Current || current.loadingFade != 0; }
 
 start
 {
 	vars.lastMap = "";
 	
-	// Set the start offset to 00:00 to force legacy timing (-01:16) to use the new timing
-	if(timer.Run.Offset.ToString() != "00:00:00" &&
-	  (timer.Run.GameName.ToLower().Contains("amfp") || timer.Run.GameName.ToLower().Contains("pig"))){
-		timer.Run.Offset = TimeSpan.Parse("00:00:00");
+	if(current.map == "Mansion01")
+	{
+		if(!vars.isLoading.Current && vars.isLoading.Old)
+		{
+			// Set the start offset to 00:55 to account for loading a save after the start dialogue
+			if(current.pActive && old.pActive)
+				timer.Run.Offset = TimeSpan.Parse("00:00:55.75");
+			// Set the start offset to 00:00 to force legacy timing (-01:16) to use the new timing
+			else if((!current.pActive && !old.pActive) || timer.Run.Offset > TimeSpan.Parse("00:01:15"))
+				timer.Run.Offset = TimeSpan.Parse("00:00:00.00");
+		}
+		
+		return (current.pActive && !old.pActive) || (old.pMoveSpeedMul != current.pMoveSpeedMul && old.pMoveSpeedMul == 0f);
 	}
-	if(current.map == "Mansion01") return current.pActive && !old.pActive;
 }
 
 reset{ return current.map == "Mansion01" && old.map != current.map; }
@@ -271,7 +309,7 @@ split
 	if(current.map != old.map && current.map == "Mansion01") return;
 	if(current.map == "Temple" && settings["autoend"]) return !current.pActive && old.pActive;
 	// Prevent splitting when loading from menu
-	//if(current.loading1 != current.loading2) return;
+	if(current.loading1 != current.loading2) return;
 	
 	//if(current.map != null && current.map != "" && vars.lastMap != "" && vars.lastMap != current.map)
 	//	vars.log("MAP",current.map+", was "+vars.lastMap);
