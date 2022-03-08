@@ -1,65 +1,71 @@
 state("aamfp","Steam 1.01")
 {
-	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
-	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
+	byte 	menuload1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
+	byte 	menuload2	 : 0x7664E4, 0x38, 0x7C;
 	
 	string9 map			 : 0x74EA04, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74EA04, 0x84, 0x58;
+	float 	pLookSpeedMul: 0x74EA04, 0x84, 0xCC;
 	float 	pMoveSpeedMul: 0x74EA04, 0x84, 0xDC;
 	float 	loadingFade	 : 0x74EA04, 0xAC, 0x164;
 }
 
 state("aamfp","NoDRM 1.01")
 {
-	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
-	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
+	byte 	menuload1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
+	byte 	menuload2	 : 0x7664E4, 0x38, 0x7C;
 	
 	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74CA04, 0x84, 0x58;
+	float 	pLookSpeedMul: 0x74CA04, 0x84, 0xCC;
 	float 	pMoveSpeedMul: 0x74CA04, 0x84, 0xDC;
 	float 	loadingFade	 : 0x74CA04, 0xAC, 0x164;
 }
 
 state("aamfp_NoSteam","NoSteam 1.01")
 {
-	byte 	loading1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
-	byte 	loading2	 : 0x7664E4, 0x38, 0x7C;
+	byte 	menuload1 	 : 0x7664E4, 0x38, 0x7C, 0x4;
+	byte 	menuload2	 : 0x7664E4, 0x38, 0x7C;
 	
 	string9 map			 : 0x74CA04, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74CA04, 0x84, 0x58;
+	float 	pLookSpeedMul: 0x74CA04, 0x84, 0xCC;
 	float 	pMoveSpeedMul: 0x74CA04, 0x84, 0xDC;
 	float 	loadingFade	 : 0x74CA04, 0xAC, 0x164;
 }
 
 state("aamfp","NoDRM 1.03")
 {
-	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
-	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
+	byte 	menuload1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
+	byte 	menuload2	 : 0x76E99C, 0x38, 0x7C;
 	
 	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74FB84, 0x84, 0x58;
+	float 	pLookSpeedMul: 0x74FB84, 0x84, 0xCC;
 	float 	pMoveSpeedMul: 0x74FB84, 0x84, 0xDC;
 	float 	loadingFade	 : 0x74FB84, 0xAC, 0x164;
 }
 
 state("aamfp_NoSteam","NoSteam 1.03")
 {
-	byte 	loading1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
-	byte 	loading2	 : 0x76E99C, 0x38, 0x7C;
+	byte 	menuload1 	 : 0x76E99C, 0x38, 0x7C, 0x4;
+	byte 	menuload2	 : 0x76E99C, 0x38, 0x7C;
 	
 	string9 map			 : 0x74FB84, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x74FB84, 0x84, 0x58;
+	float 	pLookSpeedMul: 0x74FB84, 0x84, 0xCC;
 	float 	pMoveSpeedMul: 0x74FB84, 0x84, 0xDC;
 	float 	loadingFade	 : 0x74FB84, 0xAC, 0x164;
 }
 
 state("aamfp","Steam 1.03")
 {
-	byte 	loading1 	 : 0x76984C, 0x38, 0x7C, 0x4;
-	byte 	loading2	 : 0x76984C, 0x38, 0x7C;
+	byte 	menuload1 	 : 0x76984C, 0x38, 0x7C, 0x4;
+	byte 	menuload2	 : 0x76984C, 0x38, 0x7C;
 	
 	string9 map			 : 0x754CD4, 0x5C, 0x60, 0x38;
 	bool 	pActive		 : 0x754CD4, 0x84, 0x58;
+	float 	pLookSpeedMul: 0x754CD4, 0x84, 0xCC;
 	float 	pMoveSpeedMul: 0x754CD4, 0x84, 0xDC;
 	float 	loadingFade	 : 0x754CD4, 0xAC, 0x164;
 }
@@ -84,8 +90,9 @@ startup{
 	vars.injected = false;
 	
 	settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)");
-	settings.Add("autoend",false,"[EXPERIMENTAL] Enable auto-end. Requires editing game files.");
-	settings.Add("autoend2",false,"See: https://github.com/PrototypeAlpha/AmnesiaASL/commit/f2da42b093bbb255055c9ce1c73f8272843bf249","autoend");
+	settings.Add("autoend",false,"[EXPERIMENTAL] Enable auto-end options");
+	settings.Add("autoendEdit",false,"Manual Edit method (see AmnesiaAMFP.asl in your LiveSplit components folder)","autoend");
+	settings.Add("autoendDelay",false,"5s Delay method","autoend");
 	
 	vars.log = (Action<string,string>)((lvl,text) => {
 		print("["+vars.aslName+"] "+lvl+": "+text.Replace("-"," ")); 
@@ -307,9 +314,23 @@ update
 split
 {
 	if(current.map != old.map && current.map == "Mansion01") return;
-	if(current.map == "Temple" && settings["autoend"]) return !current.pActive && old.pActive;
+	
+	if(current.map == "Temple" && settings["autoend"])
+	{
+		// Requires editing Machine for Pigs\maps\16_temple.hps
+		// Find the following line:
+		// RemoveTimer("AutoEnd");
+		// and replace it with:
+		// SetPlayerActive(false);
+		if(settings["autoendEdit"] && !current.pActive)
+			return !current.pActive && old.pActive;
+		// Splits 5s after button press
+		if(settings["autoendDelay"] && current.pMoveSpeedMul == 0f)
+			return current.pLookSpeedMul == 0.02f && old.pLookSpeedMul == 0.05f;
+	}
+	
 	// Prevent splitting when loading from menu
-	if(current.loading1 != current.loading2) return;
+	if(current.menuload1 != current.menuload2) return;
 	
 	//if(current.map != null && current.map != "" && vars.lastMap != "" && vars.lastMap != current.map)
 	//	vars.log("MAP",current.map+", was "+vars.lastMap);
