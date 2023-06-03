@@ -1,4 +1,4 @@
-state("Amnesia","1.50")
+state("Amnesia","1.42")
 {
 	byte 	 	loading1	: 0x7131C0, 0x84, 0x7C, 0x04;
 	byte 	 	loading2	: 0x7131C0, 0x84, 0x7C;
@@ -11,7 +11,7 @@ state("Amnesia","1.50")
 	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
 }
 
-state("Amnesia_NoSteam","NoSteam 1.50")
+state("Amnesia_NoSteam","NoSteam 1.42")
 {
 	byte 	 	loading1	: 0x7131C0, 0x84, 0x7C, 0x04;
 	byte 	 	loading2	: 0x7131C0, 0x84, 0x7C;
@@ -24,7 +24,7 @@ state("Amnesia_NoSteam","NoSteam 1.50")
 	float		pPosX		: 0x6FA874, 0x84, 0x54, 0x48;
 }
 
-state("Amnesia","Steam 1.50")
+state("Amnesia","Steam 1.42")
 {
 	byte 	 	loading1	: 0x781320, 0x84, 0x7C, 0x04;
 	byte 	 	loading2	: 0x781320, 0x84, 0x7C;
@@ -48,6 +48,32 @@ state("Amnesia","Streamnesia 2.1")
 	bool 	 	pActive		: 0x6FC964, 0x84, 0x58;
 	float 	 	pMSMul		: 0x6FC964, 0x84, 0xD4;
 	float		pPosX		: 0x6FC964, 0x84, 0x54, 0x48;
+}
+
+state("Amnesia_NoSteam","NoSteam 1.43")
+{
+	byte 	 	loading1	: 0x788450, 0x84, 0x7C, 0x04;
+	byte 	 	loading2	: 0x788450, 0x84, 0x7C;
+	
+	string32 	audio		: 0x788438, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
+	string15	audio2		: 0x788438, 0x48, 0x38, 0x04, 0x08, 0x04;
+	string24 	map 		: 0x76FD64, 0x5C, 0x60, 0x38;
+	bool 	 	pActive		: 0x76FD64, 0x84, 0x58;
+	float 	 	pMSMul		: 0x76FD64, 0x84, 0xD4;
+	float		pPosX		: 0x76FD64, 0x84, 0x54, 0x48;
+}
+
+state("Amnesia","Steam 1.43")
+{
+	byte 	 	loading1	: 0x78D880, 0x84, 0x7C, 0x04;
+	byte 	 	loading2	: 0x78D880, 0x84, 0x7C;
+	
+	string32 	audio		: 0x78D868, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
+	string15	audio2		: 0x78D868, 0x48, 0x38, 0x04, 0x08, 0x04;
+	string24 	map 		: 0x775194, 0x5C, 0x60, 0x38;
+	bool 	 	pActive		: 0x775194, 0x84, 0x58;
+	float 	 	pMSMul		: 0x775194, 0x84, 0xD4;
+	float		pPosX		: 0x775194, 0x84, 0x54, 0x48;
 }
 
 startup
@@ -154,18 +180,24 @@ init
 	
 	switch(size)
 	{
+		case 8421376:
+			version = "Steam 1.43";
+			break;
+		case 8396800:
+			version = "NoSteam 1.43";
+			break;
 		case 7884800:
 			version = "Streamnesia 2.1";
 			break;
 		case 7872512:
-			version = name == "amnesia.exe" ? "DRM-free 1.50" : "NoSteam 1.50";
+			version = name == "amnesia.exe" ? "DRM-free 1.42" : "NoSteam 1.42";
 			break;
 		case 8368128:
-			version = "Steam 1.50";
+			version = "Steam 1.42";
 			break;
 		default:
 			version = "Unknown";
-			var gameMessageText = "Website/launcher you bought the game from\r\n"+name+"="+size;
+			var gameMessageText = name+"="+size;
 			var gameMessage = MessageBox.Show(
 				"It appears you're running an unknown version of the game.\n\n"+
 				"Please @PrototypeAlpha#7561 on the HPL Games Speedrunning discord with "+
