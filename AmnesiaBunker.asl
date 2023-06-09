@@ -52,6 +52,15 @@ state("AmnesiaTheBunker","DRM-free 1.09")
 	string32 mapNameL   : 0x00956448, 0x180, 0x268, 0x0;
 	int      pBodyState : 0x00956448, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
+// Game Pass
+state("XBO_AmnesiaTheBunker","Game Pass 1.09")
+{
+	int 	 menuLoad   : 0x00AA4C90, 0x130;
+	bool 	 streamLoad : 0x00A8FBC8, 0x180, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00A8FBC8, 0x180, 0x268;
+	string32 mapNameL   : 0x00A8FBC8, 0x180, 0x268, 0x0;
+	int      pBodyState : 0x00A8FBC8, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 
 startup
 {
@@ -80,16 +89,21 @@ init
 	var module	 = modules.First();
 	var name	 = module.ModuleName;
 	var size	 = module.ModuleMemorySize;
+	var hash	 = "";
 	
-	byte[] exeBytes = new byte[0];
-    using (var md5 = System.Security.Cryptography.MD5.Create())
-    {
-		using (var exe = File.Open(module.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+	if(name == "XBO_AmnesiaTheBunker.exe"){ hash = "XBO_"+size; }
+	else
+	{
+		byte[] exeBytes = new byte[0];
+		using (var md5 = System.Security.Cryptography.MD5.Create())
 		{
-			exeBytes = md5.ComputeHash(exe); 
-		} 
-    }
-    var hash = exeBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
+			using (var exe = File.Open(module.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			{
+				exeBytes = md5.ComputeHash(exe); 
+			} 
+		}
+		hash = exeBytes.Select(x => x.ToString("X2")).Aggregate((a, b) => a + b);
+	}
 	
 	switch(hash)
 	{
@@ -101,6 +115,8 @@ init
 		case "A2670B4BFFD1391E92D62F68AED4B35C": version = "Demo 1.04.0"; break;
 		// DRM-free
 		case "81DEC8D42F539E7A2FB8C55F685ABF11": version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.09" : "NoSteam 1.09"; break;
+		// Game Pass
+		case "XBO_12447744": version = "Game Pass 1.09"; break;
 		default:
 			var gameMessageText = name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
@@ -114,12 +130,12 @@ init
 			if (gameMessage == DialogResult.OK) Clipboard.SetText(gameMessageText);
 			version = "Unknown"; break;
 	}
-	/*
+	
 	print("["+vars.aslName+"] name = "+name);
 	print("["+vars.aslName+"] size = "+size);
 	print("["+vars.aslName+"] md5 = "+hash);
 	print("["+vars.aslName+"] version = "+version);
-	*/
+	
 	vars.prevMap = "";
 }
 
