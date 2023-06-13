@@ -11,11 +11,15 @@
 // In Ghidra, search for string "cScript" and select the only reference in the list
 // Address will be in a MOV above
 // TODO Find SigScan target so we can automate grabbing the new address
+// Possible Signature: 48 83 ec 28 8b d1 48 8b 0d 8b c9 27 00 e8 9e a1 cc ff 48 8b c8 48 83 78 18 10 72 03
+// Search > Instruction Patterns > O (Mask all operands) > Search. Address in 2nd MOV
 
 // base:
 // In Ghidra, search for string "LuxAchievementHandler" and select the reference at the top of the list
 // Address will be in a MOV below
 // TODO Find SigScan target so we can automate grabbing the new address
+// Possible Signature: 48 8b 0d cd 05 94 00 e8 40 15 09 00 84 c0 74 28 48 8b 0d bd 05 94 00 e8 60 15 09 00
+// Search > Instruction Patterns > O (Mask all operands) > Search. Address in first MOV
 
 // Steam
 state("AmnesiaTheBunker","Steam 1.09")
@@ -25,6 +29,14 @@ state("AmnesiaTheBunker","Steam 1.09")
 	string32 mapNameS   : 0x0098E888, 0x180, 0x268;
 	string32 mapNameL   : 0x0098E888, 0x180, 0x268, 0x0;
 	int      pBodyState : 0x0098E888, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
+state("AmnesiaTheBunker","Steam 1.10")
+{
+	int 	 menuLoad   : 0x009A1CA8, 0x130;
+	bool 	 streamLoad : 0x0098D888, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x0098D888, 0x178, 0x268;
+	string32 mapNameL   : 0x0098D888, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x0098D888, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 state("AmnesiaTheBunker_Demo_Steam","Demo")
 {
@@ -43,6 +55,14 @@ state("AmnesiaTheBunker_NoSteam","NoSteam 1.09")
 	string32 mapNameL   : 0x00956448, 0x180, 0x268, 0x0;
 	int      pBodyState : 0x00956448, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
+state("AmnesiaTheBunker_NoSteam","NoSteam 1.10")
+{
+	int 	 menuLoad   : 0x0096A868, 0x130;
+	bool 	 streamLoad : 0x00956448, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00956448, 0x178, 0x268;
+	string32 mapNameL   : 0x00956448, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x00956448, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 // DRM-free
 state("AmnesiaTheBunker","DRM-free 1.09")
 {
@@ -52,8 +72,16 @@ state("AmnesiaTheBunker","DRM-free 1.09")
 	string32 mapNameL   : 0x00956448, 0x180, 0x268, 0x0;
 	int      pBodyState : 0x00956448, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
+state("AmnesiaTheBunker","DRM-free 1.10")
+{
+	int 	 menuLoad   : 0x0096A868, 0x130;
+	bool 	 streamLoad : 0x00956448, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00956448, 0x178, 0x268;
+	string32 mapNameL   : 0x00956448, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x00956448, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 // Game Pass
-state("XBO_AmnesiaTheBunker","Game Pass 1.09")
+state("XBO_AmnesiaTheBunker","Game Pass 1.08")
 {
 	int 	 menuLoad   : 0x00AA4C90, 0x130;
 	bool 	 streamLoad : 0x00A8FBC8, 0x180, 0x260; // 1 = loading, 0 = not loading
@@ -105,14 +133,17 @@ init
 	{
 		// Steam
 		case "FEE703BBCBFB627B7AD9BD06EC5176D7": version = "Steam 1.09"; break;
-		
+		case "6B3F294B0653A34FAC4E6B4698F96376": version = "Steam 1.10"; break;
+
 		case "792B3D0370025556BD644DDDBB6E0BC3": version = "Demo 1.04.1"; break;
 		case "C40D438D5B0C28A89660AAA805F0B65F": //Debug enabled
 		case "A2670B4BFFD1391E92D62F68AED4B35C": version = "Demo 1.04.0"; break;
 		// DRM-free
 		case "81DEC8D42F539E7A2FB8C55F685ABF11": version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.09" : "NoSteam 1.09"; break;
+		case "354658E840A742F63125DC676D0ECDE6": version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.10" : "NoSteam 1.10"; break;
+
 		// Game Pass
-		case "XBO_12447744": version = "Game Pass 1.09"; break;
+		case "XBO_12447744": version = "Game Pass 1.08"; break;
 		default:
 			var gameMessageText = name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
