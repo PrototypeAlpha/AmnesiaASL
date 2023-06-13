@@ -77,10 +77,6 @@ startup
 		if (timingMessage == DialogResult.Yes) timer.CurrentTimingMethod = TimingMethod.GameTime;
 	}
 	
-	settings.Add("startLoad",true,"Start on loading into hub");
-	settings.Add("startCtrl",false,"Start on gaining control in hub");
-	settings.Add("startIntro",false,"Start on gaining control in trenches");
-	
 	settings.Add("fullSplit",false,"Split on level changes (If disabled, will only auto-start and auto-end)");
 }
 
@@ -162,14 +158,8 @@ isLoading
 
 start
 {
-	// Start on gaining control in the trenches 
-	if(settings["startIntro"] && vars.prevMap == "main_menu.hpm" && current.mapName == "trenches.hpm")
-		return old.pBodyState == 7 && current.pBodyState < 5;
-	// Start on gaining control in the bunker
-	if(settings["startCtrl"] && (vars.prevMap == "main_menu.hpm" || vars.prevMap == "no_mans_land.hpm") && current.mapName == "officer_hub.hpm")
-		return old.pBodyState == 7 && current.pBodyState < 5;
 	// Start on loading into the bunker
-	return settings["startLoad"] && vars.prevMap == "main_menu.hpm" && current.mapName == "officer_hub.hpm" && current.menuLoad > old.menuLoad;
+	return vars.prevMap == "main_menu.hpm" && current.mapName == "officer_hub.hpm" && current.menuLoad > old.menuLoad;
 }
 
 //reset{ return old.mapName != current.mapName && current.mapName == "officer_hub.hpm"; }
