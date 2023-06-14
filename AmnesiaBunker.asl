@@ -81,13 +81,13 @@ state("AmnesiaTheBunker","DRM-free 1.10")
 	int      pBodyState : 0x00956448, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 // Game Pass
-state("XBO_AmnesiaTheBunker","Game Pass 1.08")
+state("XBO_AmnesiaTheBunker","Game Pass 1.10")
 {
 	int 	 menuLoad   : 0x00AA4C90, 0x130;
-	bool 	 streamLoad : 0x00A8FBC8, 0x180, 0x260; // 1 = loading, 0 = not loading
-	string32 mapNameS   : 0x00A8FBC8, 0x180, 0x268;
-	string32 mapNameL   : 0x00A8FBC8, 0x180, 0x268, 0x0;
-	int      pBodyState : 0x00A8FBC8, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+	bool 	 streamLoad : 0x00A8FBC8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00A8FBC8, 0x178, 0x268;
+	string32 mapNameL   : 0x00A8FBC8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x00A8FBC8, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 
 startup
