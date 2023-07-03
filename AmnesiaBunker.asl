@@ -75,11 +75,11 @@ state("AmnesiaTheBunker","DRM-free 1.09")
 // Game Pass
 state("XBO_AmnesiaTheBunker","Game Pass 1.10")
 {
-	int 	 menuLoad   : 0x00AA4C90, 0x130;
-	bool 	 streamLoad : 0x00A8FBC8, 0x178, 0x260; // 1 = loading, 0 = not loading
-	string32 mapNameS   : 0x00A8FBC8, 0x178, 0x268;
-	string32 mapNameL   : 0x00A8FBC8, 0x178, 0x268, 0x0;
-	int      pBodyState : 0x00A8FBC8, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+	int 	 menuLoad   : 0x00AA3C90, 0x130;
+	bool 	 streamLoad : 0x00A8EBC8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00A8EBC8, 0x178, 0x268;
+	string32 mapNameL   : 0x00A8EBC8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x00A8EBC8, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 
 startup
@@ -138,7 +138,7 @@ init
 		case "81DEC8D42F539E7A2FB8C55F685ABF11":
 			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.09" : "NoSteam 1.09"; break;
 		// Game Pass
-		case "XBO_12447744":
+		case "XBO_12443648":
 			version = "Game Pass 1.10"; break;
 		default:
 			var gameMessageText = name+","+size+","+hash;
@@ -171,7 +171,7 @@ update
 	if(current.mapName != old.mapName && current.mapName.EndsWith(".hpm"))
 	{
 		vars.prevMap = old.mapName;
-		print("["+vars.aslName+"] "+vars.prevMap+" -> "+current.mapName);
+		//print("["+vars.aslName+"] "+vars.prevMap+" -> "+current.mapName);
 	}
 }
 
