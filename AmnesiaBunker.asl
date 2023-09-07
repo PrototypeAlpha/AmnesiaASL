@@ -1,4 +1,12 @@
-// Updating: 
+// Updating (proto's way, required for game pass):
+// 1) Open process in Cheat Engine if it isn't already, then click Memory View
+// 2) View > Referenced Strings, then choose Yes to the prompt to run the Code Dissector
+// 3) After the scan is completed, search for the string
+// 4) Keep pressing F3 until the required string is highlighted
+// 5) Double click the address on the right and go back to the Memory Viewer window
+// 6) Find the address in the Opcode column
+
+// Updating (sy's way): 
 // 1) Open binary in Ghidra
 // 2) Analyze the binary (Can skip if you want to do math.. but I am lazy)
 // 3) Search > For Instruction Pattern
@@ -73,13 +81,13 @@ state("AmnesiaTheBunker","DRM-free 1.09")
 	int      pBodyState : 0x00956448, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 // Game Pass
-state("XBO_AmnesiaTheBunker","Game Pass 1.10")
+state("XBO_AmnesiaTheBunker","Game Pass 1.10 (2023-09-05)")
 {
-	int 	 menuLoad   : 0x00AA3C90, 0x130;
-	bool 	 streamLoad : 0x00A8EBC8, 0x178, 0x260; // 1 = loading, 0 = not loading
-	string32 mapNameS   : 0x00A8EBC8, 0x178, 0x268;
-	string32 mapNameL   : 0x00A8EBC8, 0x178, 0x268, 0x0;
-	int      pBodyState : 0x00A8EBC8, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+	int 	 menuLoad   : 0x00AA3DF0, 0x130;
+	bool 	 streamLoad : 0x00A8ED28, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00A8ED28, 0x178, 0x268;
+	string32 mapNameL   : 0x00A8ED28, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x00A8ED28, 0x7D0, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 
 startup
@@ -139,7 +147,7 @@ init
 			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.09" : "NoSteam 1.09"; break;
 		// Game Pass
 		case "XBO_12443648":
-			version = "Game Pass 1.10"; break;
+			version = "Game Pass 1.10 (2023-09-05)"; break;
 		default:
 			var gameMessageText = name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
@@ -178,7 +186,7 @@ update
 isLoading
 {
 	if(version == "Unknown")
-		return;
+		return false;
 	else 
 		return current.menuLoad == 0 || current.streamLoad;
 }
