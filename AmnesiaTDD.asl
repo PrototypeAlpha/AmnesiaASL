@@ -76,6 +76,32 @@ state("Amnesia","Steam 1.43")
 	float		pPosX		: 0x775194, 0x84, 0x54, 0x48;
 }
 
+state("Amnesia_NoSteam","NoSteam 1.5")
+{
+	byte 	 	loading1	: 0x753CF0, 0x84, 0x7C, 0x04;
+	byte 	 	loading2	: 0x753CF0, 0x84, 0x7C;
+	
+	string32 	audio		: 0x753CD8, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
+	string15	audio2		: 0x753CD8, 0x48, 0x38, 0x04, 0x08, 0x04;
+	string24 	map 		: 0x73B604, 0x94, 0x60, 0x38;
+	bool 	 	pActive		: 0x73B604, 0xBC, 0x58;
+	float 	 	pMSMul		: 0x73B604, 0xBC, 0xD4;
+	float		pPosX		: 0x73B604, 0xBC, 0x54, 0x48;
+}
+
+state("Amnesia","Steam 1.5")
+{
+	byte 	 	loading1	: 0x758120, 0x84, 0x7C, 0x04;
+	byte 	 	loading2	: 0x758120, 0x84, 0x7C;
+	
+	string32 	audio		: 0x758108, 0x48, 0x38, 0x04, 0x08, 0x04, 0x00;
+	string15	audio2		: 0x758108, 0x48, 0x38, 0x04, 0x08, 0x04;
+	string24 	map 		: 0x73FA34, 0x94, 0x60, 0x38;
+	bool 	 	pActive		: 0x73FA34, 0xBC, 0x58;
+	float 	 	pMSMul		: 0x73FA34, 0xBC, 0xD4;
+	float		pPosX		: 0x73FA34, 0xBC, 0x54, 0x48;
+}
+
 startup
 {
 	vars.aslName = "AmnesiaASL TDD";
@@ -134,11 +160,11 @@ startup
 		return proc.WriteBytes(src, newBytes.ToArray());
 	});
 	
-	// AOB signature for Gametime. Use the address at 8B
+	// AOB signature for Gametime, found (somewhat) near string "Game Running". Use the address at 8B
 	vars.sigGametime = new SigScanTarget(0, "8B 4E 68 C6 45 D3 01");
-	// AOB signature for Mapload. Use the address at A1
+	// AOB signature for Mapload, found near string "OnLeave". Use the address at A1
 	vars.sigMapload  = new SigScanTarget(3, "89 45 ?? A1 ?? ?? ?? ?? 8B 88");
-	// AOB signature for Menu. Use the address at 8B
+	// AOB signature for Menu, found near string "menu_loading_screen.jpg". Use the address at 8B
 	vars.sigMenuload = new SigScanTarget(0, "8B ?? 70 8B ?? 30 6?");
 }
 
@@ -180,6 +206,16 @@ init
 	
 	switch(size)
 	{
+		case 8200192:
+			version = "Steam 1.5";
+			// Bytes at the inject point were changed, luckily the byte combo is unique
+			vars.sigMenuload = new SigScanTarget(0, "8B ?? ?? ?? ?? ?? 8B 42 30 6A 17");
+			break;
+		case 8183808:
+			version = "NoSteam 1.5";
+			// Bytes at the inject point were changed, luckily the byte combo is unique
+			vars.sigMenuload = new SigScanTarget(0, "8B ?? ?? ?? ?? ?? 8B 42 30 6A 17");
+			break;
 		case 8421376:
 			version = "Steam 1.43";
 			break;
@@ -252,7 +288,7 @@ init
 		vars.log("DEBUG","Gametime address: "+BitConverter.ToString(addrGametime).Replace("-",""));
 		vars.log("DEBUG","Original bytes at Gametime address: "+BitConverter.ToString(game.ReadBytes(staticGametime, 7)).Replace("-"," "));
 		
-		IntPtr codeGametime = aslMem+1;
+		IntPtr codeGametime = aslMem+2;
 		vars.WriteMov(game, codeGametime, 7, aslMem, new byte[] {0}); // Write instruction to set isLoading to 0
 		vars.CopyMemory(game, staticGametime, 7, codeGametime+7); // Write original code
 		game.WriteJumpInstruction(codeGametime+7+7, staticGametime+7); // Write jump out
