@@ -82,11 +82,11 @@ state("AmnesiaTheBunker_NoSteam","NoSteam 1.09")
 // DRM-free
 state("AmnesiaTheBunker","DRM-free 1.22")
 {
-	int 	 menuLoad   : 0x0096E8D8, 0x130;
-	bool 	 streamLoad : 0x0095A4D8, 0x178, 0x260; // 1 = loading, 0 = not loading
-	string32 mapNameS   : 0x0095A4D8, 0x178, 0x268;
-	string32 mapNameL   : 0x0095A4D8, 0x178, 0x268, 0x0;
-	int      pBodyState : 0x0095A4D8, 0x800, 0x78, 0xC8, 0x90, 0x1B4; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+	int 	 menuLoad   : 0x0096D888, 0x130;
+	bool 	 streamLoad : 0x00959468, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x00959468, 0x178, 0x268;
+	string32 mapNameL   : 0x00959468, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x00959468, 0x800, 0x78, 0xC8, 0x90, 0x1B4; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 state("AmnesiaTheBunker","DRM-free 1.10")
 {
@@ -170,7 +170,10 @@ init
 			version = "Steam 1.09"; break;
 		// DRM-free
 		case "282991FA31873B2F271BCC7D6CECDF76":
-			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.22" : "NoSteam 1.22"; break;
+			version = "NoSteam 1.22"; break;
+		
+		case "76F7D4CC0D94BE149366D99F18DC163F":
+			version = "DRM-free 1.22"; break;
 		
 		case "2DD1D4CAF404B20A2E4C33A5794B5E67":
 			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.10" : "NoSteam 1.11"; break;
