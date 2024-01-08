@@ -180,7 +180,7 @@ init
 	switch(hash)
 	{
 		// Steam
-		case: "FB528108E601E5BF247B4F143729EFF7":
+		case "FB528108E601E5BF247B4F143729EFF7":
 			version = "Steam 1.3"; break;
 		
 		case "74BFA5392A9DED6958D15F02B887B5BC":
