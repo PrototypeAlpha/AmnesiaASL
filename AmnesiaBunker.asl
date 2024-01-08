@@ -30,6 +30,14 @@
 // Search > Instruction Patterns > O (Mask all operands) > Search. Address in first MOV
 
 // Steam
+state("AmnesiaTheBunker","Steam 1.3")
+{
+	int 	 menuLoad   : 0x009A6D18, 0x130;
+	bool 	 streamLoad : 0x009928F8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x009928F8, 0x178, 0x268;
+	string32 mapNameL   : 0x009928F8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x009928F8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 state("AmnesiaTheBunker","Steam 1.22")
 {
 	int 	 menuLoad   : 0x009A5D18, 0x130;
@@ -55,6 +63,14 @@ state("AmnesiaTheBunker","Steam 1.09")
 	int      pBodyState : 0x0098E888, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 // NoSteam
+state("AmnesiaTheBunker_NoSteam","NoSteam 1.3")
+{
+	int 	 menuLoad   : 0x0096F8D8, 0x130;
+	bool 	 streamLoad : 0x0095B4B8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x0095B4B8, 0x178, 0x268;
+	string32 mapNameL   : 0x0095B4B8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x0095B4B8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 state("AmnesiaTheBunker_NoSteam","NoSteam 1.22")
 {
 	int 	 menuLoad   : 0x0096E8D8, 0x130;
@@ -80,6 +96,14 @@ state("AmnesiaTheBunker_NoSteam","NoSteam 1.09")
 	int      pBodyState : 0x00956448, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 // DRM-free
+state("AmnesiaTheBunker","DRM-free 1.3")
+{
+	int 	 menuLoad   : 0x0096F8D8, 0x130;
+	bool 	 streamLoad : 0x0095B4B8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x0095B4B8, 0x178, 0x268;
+	string32 mapNameL   : 0x0095B4B8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x0095B4B8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 state("AmnesiaTheBunker","DRM-free 1.22")
 {
 	int 	 menuLoad   : 0x0096D888, 0x130;
@@ -156,6 +180,9 @@ init
 	switch(hash)
 	{
 		// Steam
+		case: "FB528108E601E5BF247B4F143729EFF7":
+			version = "Steam 1.3"; break;
+		
 		case "74BFA5392A9DED6958D15F02B887B5BC":
 			version = "Steam 1.22"; break;
 		
@@ -169,6 +196,9 @@ init
 		case "FEE703BBCBFB627B7AD9BD06EC5176D7":
 			version = "Steam 1.09"; break;
 		// DRM-free
+		case "8BC01851D3232F274A01BDF31C10DB91":
+			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.3" : "NoSteam 1.3"; break;
+		
 		case "282991FA31873B2F271BCC7D6CECDF76":
 			version = "NoSteam 1.22"; break;
 		
