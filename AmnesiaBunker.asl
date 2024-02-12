@@ -30,6 +30,14 @@
 // Search > Instruction Patterns > O (Mask all operands) > Search. Address in first MOV
 
 // Steam
+state("AmnesiaTheBunker","Steam 1.31")
+{
+	int 	 menuLoad   : 0x009A6D18, 0x130;
+	bool 	 streamLoad : 0x009928F8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x009928F8, 0x178, 0x268;
+	string32 mapNameL   : 0x009928F8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x009928F8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 state("AmnesiaTheBunker","Steam 1.3")
 {
 	int 	 menuLoad   : 0x009A6D18, 0x130;
@@ -71,6 +79,14 @@ state("AmnesiaTheBunker_NoSteam","NoSteam 1.3")
 	string32 mapNameL   : 0x0095B4B8, 0x178, 0x268, 0x0;
 	int      pBodyState : 0x0095B4B8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
+state("AmnesiaTheBunker_NoSteam","NoSteam 1.31")
+{
+	int 	 menuLoad   : 0x0096F8D8, 0x130;
+	bool 	 streamLoad : 0x0095B4B8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x0095B4B8, 0x178, 0x268;
+	string32 mapNameL   : 0x0095B4B8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x0095B4B8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 state("AmnesiaTheBunker_NoSteam","NoSteam 1.22")
 {
 	int 	 menuLoad   : 0x0096E8D8, 0x130;
@@ -96,6 +112,14 @@ state("AmnesiaTheBunker_NoSteam","NoSteam 1.09")
 	int      pBodyState : 0x00956448, 0x7D8, 0x78, 0xC8, 0x90, 0x1B0; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
 }
 // DRM-free
+state("AmnesiaTheBunker","DRM-free 1.31")
+{
+	int 	 menuLoad   : 0x0096F8D8, 0x130;
+	bool 	 streamLoad : 0x0095B4B8, 0x178, 0x260; // 1 = loading, 0 = not loading
+	string32 mapNameS   : 0x0095B4B8, 0x178, 0x268;
+	string32 mapNameL   : 0x0095B4B8, 0x178, 0x268, 0x0;
+	int      pBodyState : 0x0095B4B8, 0x800, 0x78, 0xC8, 0x90, 0x1BC; // See ePlayerBodyAnimationState in PlayerBodyAnimationStates.hps (first value is 0)
+}
 state("AmnesiaTheBunker","DRM-free 1.3")
 {
 	int 	 menuLoad   : 0x0096F8D8, 0x130;
@@ -180,6 +204,9 @@ init
 	switch(hash)
 	{
 		// Steam
+		case "2F055874CE9296CF8C7B82A6F9DB8396":
+			version = "Steam 1.31"; break;
+		
 		case "FB528108E601E5BF247B4F143729EFF7":
 			version = "Steam 1.3"; break;
 		
@@ -196,6 +223,9 @@ init
 		case "FEE703BBCBFB627B7AD9BD06EC5176D7":
 			version = "Steam 1.09"; break;
 		// DRM-free
+		case "2A8F3C4FD2F9E324280EF32666D5A1CD":
+			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.31" : "NoSteam 1.31"; break;
+		
 		case "8BC01851D3232F274A01BDF31C10DB91":
 			version = name == "AmnesiaTheBunker.exe" ? "DRM-free 1.3" : "NoSteam 1.3"; break;
 		
@@ -217,10 +247,12 @@ init
 		// Game Pass
 		case "XBO_12443648":
 			version = "Game Pass 1.10 (2023-09-05)"; break;
+		
 		default:
 			var gameMessageText = name+","+size+","+hash;
 			var gameMessage = MessageBox.Show(
-				"It appears you're running an unknown version of the game.\n\n"+
+				"It appears you're running an unknown version of the game.\n"+
+				"Some features of the autosplitter may not work.\n\n"+
 				"Please @PrototypeAlpha on the HPL Games Speedrunning discord with "+
 				"the following:\n"+gameMessageText+"\n\n"+
 				"Press OK to copy the above info to the clipboard and close this message.",
