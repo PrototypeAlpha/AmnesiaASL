@@ -104,6 +104,8 @@ state("Amnesia","Steam 1.43")
 
 startup
 {
+	refreshRate = 120;
+	
 	vars.aslName = "AmnesiaASL TDD";
 	if(timer.CurrentTimingMethod == TimingMethod.RealTime){
 		
@@ -122,6 +124,7 @@ startup
 	vars.injected = false;
 	
 	settings.Add("fullSplit",true,"Split on level changes (If disabled, will only auto-start and auto-end)");
+	settings.Add("mainMenuPause",true,"Keep game time paused while on the main menu");
 	
 	vars.log = (Action<string,string>)((lvl,text) => {
 		print("["+vars.aslName+"] "+lvl+": "+text.Replace("-"," ")); 
@@ -327,7 +330,7 @@ init
 	vars.isLoading = new MemoryWatcher<bool>(aslMem);
 }
 
-isLoading{ return vars.isLoading.Current; }
+isLoading{ return vars.isLoading.Current || (current.map == null && settings["mainMenuPause"]); }
 
 start
 {
